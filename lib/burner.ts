@@ -1,0 +1,53 @@
+import { Keypair } from "@solana/web3.js";
+import { db } from "./db";
+
+export type BurnerWalletProps = {
+    name : string;
+}
+
+export type BurnerWallet = {
+    name : string;
+    publicKey : string;
+    secretKey : number[];
+    createdAt : number;
+    expiresAt : number;
+}
+
+
+export function createBurnerWallet(props : BurnerWalletProps){
+    // Generates a one time key piar
+    const keypair = Keypair.generate();
+    const result : BurnerWallet = {
+        name : props.name,
+        publicKey : keypair.publicKey.toBase58(),
+        secretKey : Array.from(keypair.secretKey),
+        createdAt : Date.now(),
+        expiresAt : Date.now() + 60 * 60 * 1000
+    }
+
+    db.createBurnerWallet(result)
+
+    return result
+}
+
+export function saveBurnerWallet(wallet : BurnerWallet) {
+    db.createBurnerWallet(wallet);
+    
+    sessionStorage.setItem(
+      wallet.name,
+      JSON.stringify(wallet)
+    );
+  }
+  
+export function loadBurnerWallet() {
+    const raw = sessionStorage.getItem("burner_wallet");
+    return raw ? JSON.parse(raw) : null;
+}
+  
+export function deleteBurnerWallet(wallet : BurnerWallet){
+    const key = sessionStorage.removeItem(wallet.name);
+
+    // deleting by pub key is the easiest way for now
+    db.deleteBurnerWallet(wallet.publicKey)
+    alert("Wallet Removed Sucessfully")
+}

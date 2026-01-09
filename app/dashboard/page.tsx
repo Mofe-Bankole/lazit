@@ -11,14 +11,17 @@ import React, { useEffect } from "react";
 import { getAssociatedTokenAddress } from "@solana/spl-token";
 import config from "@/lib/config";
 import AddressButton from "@/components/AddressButton";
+import Divider from "@/components/Divider";
+import { SOLANA_DEVNET_RPC, USDC_MINT } from "@/lib/constants";
 
 export default function Dashboard() {
-  // Connect app to the Solana Devnet
+  // Connect app to the Solana Devnet (devnet for now)
   const connection = new Connection(
-    config?.SOLANA_RPC_URL || "https://api.devnet.solana.com",
+    config?.SOLANA_RPC_URL || SOLANA_DEVNET_RPC,
     "confirmed"
   );
-  const { signAndSendTransaction, isSigning, smartWalletPubkey, isConnected } =
+  
+  const { signAndSendTransaction, isSigning, smartWalletPubkey, isConnected  } =
     useWallet();
   const [loadingBalances, setLoadingBalances] = React.useState(false);
   const [recipient, setRecipient] = React.useState<string>("");
@@ -29,11 +32,6 @@ export default function Dashboard() {
     "idle"
   );
   const [txError, setTxError] = React.useState<string>("");
-
-  // USDC Mint adddress required to check balances
-  const USDC_MINT = new PublicKey(
-    "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU"
-  );
 
   // Fetches the users SOL and USDC balances respectively
   const fetchUserBalances = async () => {
@@ -73,6 +71,7 @@ export default function Dashboard() {
     if (Number(amount) > solBalance) {
       setTxError("Balance is less than Sending Amount");
       setTxStatus("idle");
+      return;
     }
 
     try {
@@ -110,6 +109,13 @@ export default function Dashboard() {
       }
       alert(`Transaction Confirmed : ${signature}`);
     } catch (error: any) {
+      if(error.message.includes('failed')){
+        connection.requestAirdrop(
+          smartWalletPubkey,
+          1 * LAMPORTS_PER_SOL
+        );
+      }
+      
       setTxStatus("error");
       setTxError(error.message || "Transaction failed");
       console.log(error);
@@ -117,11 +123,7 @@ export default function Dashboard() {
     }
   };
 
-  const fullAddress = smartWalletPubkey?.toString() as string;
 
-  function copyAddressToClipboard() {
-    navigator.clipboard.writeText(fullAddress);
-  }
   return (
     <div className="min-h-screen bg-white text-black relative ">
       <WalletHeader />
@@ -200,7 +202,7 @@ export default function Dashboard() {
 
           <div className="mb-6">
             <label
-              className="block text-sm text-gray-700 mb-2"
+              className="block text-sm text-gray-700 mb-2 text-right"
               htmlFor="amount"
             >
               Amount (SOL)
@@ -237,41 +239,30 @@ export default function Dashboard() {
             </div>
           )}
         </div>
-        <div className="mt-5 md:grid md:grid-cols-2 grid-rows-1 items-center gap-1">
-          <a className="cursor-pointer" href="/guides/creating-wallets">
-            <div className="border border-gray-300 py-8 px-3.5 cursor-pointer relative flex mb-1.5">
+        <div className="mt-2.5 md:grid md:grid-cols-3 grid-rows-1 items-center gap-1">
+          <a className="cursor-pointer rounded-sm bg-black text-white" href="/examples">
+            <div className="py-6 px-3.5 cursor-pointer relative flex mb-1.5">
               <h6 className="">
-                Creating{" "}
-                <span className="text-purple-500">
-                  Passkey-Enabled Wallets{" "}
-                </span>
-                with Lazorkit
+               Examples
               </h6>
             </div>
           </a>
-          <a className="cursor-pointer" href="/guides/triggering-gasless-txns">
-            <div className="border border-gray-300 py-8 px-3.5 cursor-pointer relative flex mb-1.5">
-              <h6>Triggering Gasless Transactions With Lazorkit</h6>
+          <a className="cursor-pointer rounded-sm bg-black text-white" href="/docs">
+            <div className="py-6 px-3.5 cursor-pointer relwative flex mb-1.5">
+              <h6 className="">
+              Docs
+              </h6>
             </div>
           </a>
-          <a className="cursor-pointer" href="/">
-            <div className="border border-gray-300 py-8 px-3.5 cursor-pointer relative flex mb-1.5">
-              <h6>Introudction to Passkey-Enabled Wallets</h6>
-            </div>
-          </a>
-          <a className="cursor-pointer" href="/">
-            <div className="border border-gray-300 py-8 px-3.5 cursor-pointer relative flex mb-1.5">
-              <h6>Whats a wallet</h6>
+          <a className="cursor-pointer rounded-sm bg-black text-white" href="/guides">
+            <div className="py-6 px-3.5 cursor-pointer relative flex mb-1.5">
+              <h6 className="">
+               Guides
+              </h6>
             </div>
           </a>
         </div>
       </div>
-
-      {/* <footer className="absolute md:bottom-0 items-center justify-center w-full md:py-2 bottom-1 border border-gray-300">
-                <div className="w-[85%] mx-auto text-center">
-                        Powered by <a href="https://lazorkit.com" className="text-purple-500 contrast-125" target="_blank">lazorkit</a>
-                </div>
-            </footer> */}
     </div>
   );
 }
