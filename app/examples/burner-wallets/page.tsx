@@ -1,11 +1,15 @@
 'use client'
 import BurnerModal from "@/components/BurnerModal";
+import ConnectionButton from "@/components/ConnectionButton";
+import WalletConnect from "@/components/WalletConnect";
 import WalletHeader from "@/components/WalletHeader";
 import { copyToClipboard } from "@/lib/clipboard";
+import { useWallet } from "@lazorkit/wallet";
 import axios from "axios";
 import { useState, useEffect } from "react";
 
 export default function BurnerWalletPage() {
+    const {smartWalletPubkey , isConnected} = useWallet();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [wallets, setWallets] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -61,8 +65,6 @@ export default function BurnerWalletPage() {
     return (
         <div className="min-h-screen bg-white text-black relative ">
             <WalletHeader />
-
-            {/* BurnerModal should be rendered here, as part of the render tree */}
             <BurnerModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
@@ -74,18 +76,20 @@ export default function BurnerWalletPage() {
 
             <div className="max-w-4xl mx-auto px-4 py-8">
                 <a href="/dashboard">Back</a>
-                <div className="mt-3">
+                <div className="mt-4">
                     <div className="flex justify-between items-center">
-                        <h1 className="text-2xl">Burners</h1>
+                        {isConnected ? 
                         <button className="cursor-pointer bg-black rounded-sm text-white px-6 py-3" onClick={toggleModal}>
-                            Create New
-                        </button>
+                            Create New Burner
+                        </button> : <ConnectionButton/>
+                        }
+                        <button onClick={fetchUsersBurners} className="cursor-pointer  rounded-sm text-black border border-gray-300 px-6 py-3">Fetch burners</button>
                     </div>
                     {loading ? (
                         <div className="py-8 text-center text-gray-400">Loading wallets...</div>
                     ) : wallets.length > 0 ? (
                         wallets.map((wallet, i) => (
-                            <div key={wallet.publicKey} className="mt-8 mb-3.5 border border-gray-200 p-6" onClick={copyToClipboard(wallet.publicKey)}>
+                            <div key={wallet.publicKey} className="mt-8 mb-3.5 border border-gray-200 p-6">
                                 <div className="flex items-center justify-between">
                                     <span className="font-semibold text-lg">
                                         {wallet.name ? wallet.name : `Burner Wallet ${i + 1}`}
@@ -110,7 +114,7 @@ export default function BurnerWalletPage() {
                                         Delete
                                     </button>
                                 </div>
-                                <div className="mt-2 text-xs text-gray-400 break-all">
+                                <div className="mt-3 text-xs text-gray-400 break-all">
                                     Public Key: {wallet.publicKey}
                                 </div>
                             </div>

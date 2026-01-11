@@ -12,8 +12,8 @@ export async function DELETE(
   { params }: RouteParams
 ) {
   try {
-    const paramters = await params
-    const publicKey = decodeURIComponent(paramters.publicKey);
+    const parameters = await params;
+    const publicKey = decodeURIComponent(parameters.publicKey);
     const deleted = db.deleteBurnerWallet(publicKey);
     
     if (!deleted) {

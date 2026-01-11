@@ -240,21 +240,21 @@ export default function Dashboard() {
           )}
         </div>
         <div className="mt-2.5 md:grid md:grid-cols-3 grid-rows-1 items-center gap-1">
-          <a className="cursor-pointer rounded-sm bg-black text-white" href="/examples">
+          <a className="cursor-pointer rounded-sm border border-gray-300 text-black" href="/examples">
             <div className="py-6 px-3.5 cursor-pointer relative flex mb-1.5">
               <h6 className="">
                Examples
               </h6>
             </div>
           </a>
-          <a className="cursor-pointer rounded-sm bg-black text-white" href="/docs">
+          <a className="cursor-pointer rounded-sm border border-gray-300 text-black" href="/docs">
             <div className="py-6 px-3.5 cursor-pointer relwative flex mb-1.5">
               <h6 className="">
               Docs
               </h6>
             </div>
           </a>
-          <a className="cursor-pointer rounded-sm bg-black text-white" href="/guides">
+          <a className="cursor-pointer rounded-sm border border-gray-300 text-black" href="/guides">
             <div className="py-6 px-3.5 cursor-pointer relative flex mb-1.5">
               <h6 className="">
                Guides

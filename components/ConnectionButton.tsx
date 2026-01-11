@@ -2,8 +2,8 @@ import { useWallet } from "@lazorkit/wallet";
 
 // Main UI component
 // Toggles connection status
-export default function DisconnectButton(){
-  const {wallet ,connect, smartWalletPubkey, disconnect, isConnected} = useWallet();
+export default function ConnectionButton(){
+  const {connect, smartWalletPubkey, disconnect, isConnected} = useWallet();
   const fullAddress = smartWalletPubkey?.toString() as string;
   function copyAddressToClipboard(){
     navigator.clipboard.writeText(fullAddress)

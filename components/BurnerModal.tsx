@@ -109,7 +109,7 @@ export default function BurnerModal({
               className="mb-1.5 w-full px-4 py-2 border border-gray-300 rounded-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent text-black"
               autoFocus
             />
-            <p>Burners last for only an hour (60 minutes)</p>
+            <p>Burners last for One Session (When u close this app they will dissapear)</p>
           </div>
 
           {/* Error Message */}
