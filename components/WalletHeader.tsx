@@ -8,7 +8,7 @@ export default function WalletHeader() {
 
   return (
     <div className="w-full bg-white border-b border-gray-200">
-        <div className="max-w-4xl mx-auto px-2 py-2 flex items-center justify-between">
+        <div className="max-w-5xl mx-auto px-2 py-2 flex items-center justify-between">
             <div className="text-xl font-medium text-black"><a href="/dashboard"><span className="text-purple-500">Lazit</span></a></div>
             <ConnectionButton/>
             {wallet?.walletDevice && (

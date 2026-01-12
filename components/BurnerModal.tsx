@@ -29,7 +29,7 @@ export default function BurnerModal({
 
     // Validate inputs
     if (!name.trim()) {
-      setError("Wallet name is required");
+      setError("Wallet Name is required");
       setLoading(false);
       return;
     }

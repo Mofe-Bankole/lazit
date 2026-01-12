@@ -20,18 +20,18 @@ export function createBurnerWallet(props : BurnerWalletProps){
     // Generates a one time key piar
     const keypair = Keypair.generate();
 
-    const result : BurnerWallet = {
+    const req : BurnerWallet = {
         name : props.name,
         owner : props.owner,
-        publicKey : keypair.publicKey.toBase58(),
+        publicKey : keypair.publicKey.toString(),
         secretKey : Array.from(keypair.secretKey),
         createdAt : Date.now(),
         expiresAt : Date.now() + 60 * 60 * 1000
     }
 
-    db.createBurnerWallet(result)
+    db.createBurnerWallet(req)
 
-    return result
+    return req
 }
 
 export function saveBurnerWallet(wallet : BurnerWallet) {

@@ -7,6 +7,7 @@ import { BurnerWallet } from "@/lib/burner";
 import { copyToClipboard } from "@/lib/clipboard";
 import { useWallet } from "@lazorkit/wallet";
 import axios from "axios";
+import { X } from "lucide-react";
 import { useState, useEffect } from "react";
 
 export default function BurnerWalletPage() {
@@ -47,23 +48,24 @@ export default function BurnerWalletPage() {
         }
 
         try {
-            const res = await axios.post('/api/burners/delete', { publicKey });
+            const res = await axios.post(`/api/burners/del`, { publicKey });
             if (res.data.success) {
                 fetchUsersBurners();
-            }else{
-                console.log("Theres a bug here man")
+            } else {
+                console.log("Delete burner failed: ", res.data.error);
             }
         } catch (error: any) {
             console.error("Error deleting wallet:", error);
         }
     }
 
-    function copyToClipboard(text : string){
-        navigator.clipboard.writeText(text)
+    function copyToClipboard(text: string) {
+        navigator.clipboard.writeText(text);
+        alert("Address copied to clipboard");
     }
 
     return (
-        <div className="min-h-screen bg-white text-black relative ">
+        <div className="min-h-screen bg-white text-black flex flex-col">
             <WalletHeader />
             <BurnerModal
                 isOpen={isModalOpen}
@@ -75,57 +77,125 @@ export default function BurnerWalletPage() {
                 }}
             />
 
-            <div className="max-w-4xl mx-auto px-4 py-8">
-                <a href="/dashboard">Back</a>
-                <div className="mt-4">
-                    <div className="flex justify-between items-center">
-                        {isConnected ? 
-                        <button className="cursor-pointer bg-black rounded-sm text-white px-6 py-3" onClick={toggleModal}>
-                            Create New Burner
-                        </button> : <ConnectionButton/>
-                        }
-                        <button onClick={fetchUsersBurners} className="cursor-pointer  rounded-sm text-black border border-gray-300 px-6 py-3">Fetch burners</button>
+            <main className="flex-1 w-full">
+                <div className="max-w-4xl mx-auto px-4 py-6 sm:py-8">
+                    <div className="flex items-center justify-between gap-3 mb-4">
+                        <a
+                            href="/dashboard"
+                            className="text-sm text-gray-600 hover:underline"
+                        >
+                            ← Back to dashboard
+                        </a>
+                        <button
+                            onClick={fetchUsersBurners}
+                            className="cursor-pointer rounded-sm border border-gray-300 text-xs sm:text-sm px-3 py-1.5 sm:px-4 sm:py-2"
+                        >
+                            Refresh
+                        </button>
                     </div>
-                    {loading ? (
-                        <div className="py-8 text-center text-gray-400">Loading wallets...</div>
-                    ) : wallets.length > 0 ? (
-                        wallets.map((wallet : BurnerWallet, i) => (
-                            <div key={wallet.publicKey} className="mt-8 mb-3.5 border border-gray-200 p-6">
-                                <div className="flex items-center justify-between">
-                                    <span className="font-semibold text-lg">
-                                        {wallet.name ? wallet.name : `Burner Wallet ${i + 1}`}
-                                    </span>
-                                    <span className="text-xs text-gray-400">Balance</span>
-                                </div>
-                                <div className="my-4 flex items-baseline">
-                                    <span className="text-2xl font-mono">0.00</span>
-                                    <span className="ml-2 text-sm text-gray-500">SOL</span>
-                                </div>
-                                <div className="flex gap-3 mt-6">
-                                    <button className="cursor-pointer flex-1 border border-gray-300 font-semibold rounded px-4 py-2 hover:bg-amber-200 transition">
-                                        Send
-                                    </button>
-                                    <button className="cursor-pointer flex-1 border border-gray-300 font-semibold rounded px-4 py-2 hover:bg-green-100 transition">
-                                        Receive
-                                    </button>
-                                    <button 
-                                        onClick={() => handleDeleteWallet(wallet.publicKey)}
-                                        className="cursor-pointer flex-1 border border-red-400 text-red-600 font-semibold rounded px-4 py-2 hover:bg-red-100 transition"
-                                    >
-                                        Delete
-                                    </button>
-                                </div>
-                                <p>{wallet.owner}</p>
-                                <div className="mt-3 text-xs text-gray-400 break-all">
-                                    Public Key: {wallet.publicKey}
-                                </div>
+
+                    <header className="mb-6">
+                        <h1 className="text-xl sm:text-2xl font-semibold mb-1">
+                            Burner Wallets
+                        </h1>
+                        <p className="text-sm text-gray-600">
+                            Temporary wallets for frictionless onboarding. Burners last for one
+                            session and are tied to your connected wallet.
+                        </p>
+                    </header>
+
+                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-4">
+                        {isConnected ? (
+                            <button
+                                className="cursor-pointer bg-black text-white rounded-sm px-4 py-2 text-sm font-semibold flex-1 sm:flex-none text-center"
+                                onClick={toggleModal}
+                            >
+                                Create new burner
+                            </button>
+                        ) : (
+                            <div className="flex-1 sm:flex-none">
+                                <ConnectionButton />
                             </div>
-                        ))
+                        )}
+                    </div>
+
+                    {loading ? (
+                        <div className="py-10 text-center text-gray-400 text-sm">
+                            Loading wallets...
+                        </div>
+                    ) : wallets.length > 0 ? (
+                        <div className="mt-4 space-y-4">
+                            {wallets.map((wallet: BurnerWallet, i) => (
+                                <div
+                                    key={wallet.publicKey}
+                                    className="border border-gray-200 rounded-sm px-4 py-4 sm:px-6 sm:py-5"
+                                >
+                                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                                        <div>
+                                            <div className="text-sm text-gray-500 mb-0.5">
+                                                Burner {i + 1}
+                                            </div>
+                                            <div className="font-semibold text-base sm:text-lg">
+                                                {wallet.name || "Untitled burner"}
+                                            </div>
+                                        </div>
+                                        <div className="text-right">
+                                            <div className="text-xs text-gray-400">Balance</div>
+                                            <div className="flex items-baseline justify-end gap-1">
+                                                <span className="text-xl font-mono">0.00</span>
+                                                <span className="text-xs text-gray-500">SOL</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-4 flex flex-col sm:flex-row gap-2">
+                                        <button
+                                            className="cursor-pointer flex-1 border border-gray-300 font-semibold rounded px-3 py-2 text-sm hover:bg-gray-100 transition"
+                                            onClick={() => copyToClipboard(wallet.publicKey)}
+                                        >
+                                            Copy address
+                                        </button>
+                                        <button className="cursor-pointer flex-1 border border-gray-300 font-semibold rounded px-3 py-2 text-sm hover:bg-gray-100 transition">
+                                            Sweep to Main
+                                        </button>
+                                        <button
+                                            onClick={() => handleDeleteWallet(wallet.publicKey)}
+                                            className="cursor-pointer flex-1 border border-red-400 text-red-600 font-semibold rounded px-3 py-2 text-sm hover:bg-red-100 transition"
+                                        >
+                                            Delete
+                                        </button>
+                                    </div>
+
+                                    <div className="mt-3 space-y-1">
+                                        <div className="text-xs text-gray-500 break-all">
+                                            Owner: {wallet.owner}
+                                        </div>
+                                        <div className="text-xs text-gray-500 break-all">
+                                            Public key: {wallet.publicKey}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     ) : (
-                        <div className="py-8 text-center text-gray-400">No wallets</div>
+                        <div className="mt-6 border border-gray-200 rounded-sm px-4 py-6 text-center text-sm text-gray-500">
+                            <div className="flex flex-col text-center">
+                                <X className="text-5xl mb-6 w-1/2 mx-auto" ></X>
+                                <p className="mb-2 mt-2">No burner wallets yet.</p>
+                            </div>
+                            {isConnected ? (
+                                <p>
+                                    Click{" "}
+                                    <span className="font-semibold">“Create new burner”</span> to
+                                    spin up your first burner wallet.
+                                </p>
+                            ) : (
+                                <p>Connect your wallet to create a burner.</p>
+                            )}
+                        </div>
                     )}
                 </div>
-            </div>
+            </main>
         </div>
     );
 }

@@ -19,15 +19,15 @@ export default function Dashboard() {
     config?.SOLANA_RPC_URL || SOLANA_DEVNET_RPC,
     "confirmed"
   );
-  
-  const { signAndSendTransaction, isSigning, smartWalletPubkey, isConnected  } =
+
+  const { signAndSendTransaction, isSigning, smartWalletPubkey, isConnected } =
     useWallet();
   const [loadingBalances, setLoadingBalances] = React.useState(false);
   const [recipient, setRecipient] = React.useState<string>("");
   const [amount, setAmount] = React.useState<string>("");
   const [solBalance, setSolBalance] = React.useState<number>(0);
   const [usdcBalance, setUsdcBalance] = React.useState<number | null>(null);
-  const [txnsig , setTxnSig] = useState("")
+  const [txnsig, setTxnSig] = useState("")
   const [txStatus, setTxStatus] = React.useState<"idle" | "success" | "error">(
     "idle"
   );
@@ -96,7 +96,7 @@ export default function Dashboard() {
       const signature = await signAndSendTransaction({
         instructions: [instruction],
         transactionOptions: {
-          clusterSimulation : 'devnet'
+          clusterSimulation: 'devnet'
         },
       });
 
@@ -110,13 +110,13 @@ export default function Dashboard() {
       setTxnSig(signature);
       alert(`Transaction Confirmed : ${signature}`);
     } catch (error: any) {
-      if(error.message.includes('failed')){
+      if (error.message.includes('failed')) {
         connection.requestAirdrop(
           smartWalletPubkey,
           1 * LAMPORTS_PER_SOL
         );
       }
-      
+
       setTxStatus("error");
       setTxError(error.message || "Transaction failed");
       console.log(error);
@@ -181,11 +181,11 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
-        <div className="mt-2.5 md:grid md:grid-cols-3 grid-rows-1 items-center gap-1 mb-2 justify-">
+        <div className="mt-2.5 md:grid md:grid-cols-3 grid-rows-1 items-center gap-1 mb-2">
           <a className="cursor-pointer rounded-sm border border-gray-300 text-black" href="/examples/burner-wallets">
             <div className="py-2 px-3.5 cursor-pointer relative flex flex-col mb-1.5">
               <h6 className="mb-3 ">
-               Burner Wallets
+                Burner Wallets
               </h6>
               <p className="text-sm text-gray-500">Temporary wallets for frictionless onboarding </p>
             </div>
@@ -193,22 +193,33 @@ export default function Dashboard() {
           <a className="cursor-pointer rounded-sm border border-gray-300 text-black" href="/examples/raydium-swaps">
             <div className="py-2 px-3.5 cursor-pointer relative flex flex-col mb-1.5">
               <h6 className="mb-3 ">
-              Raydium Swaps
+                Raydium Swaps
               </h6>
               <p className="text-sm text-gray-500">Swap Tokens on Raydium Devnet</p>
             </div>
           </a>
-          <a className="cursor-pointer rounded-sm border border-gray-300 text-black" href="/examples/burner-wallets">
+          <a className="cursor-pointer rounded-sm border border-gray-300 text-black" href="/examples/raydium-swaps">
             <div className="py-2 px-3.5 cursor-pointer relative flex flex-col mb-1.5">
               <h6 className="mb-3 ">
-              Subscritption Service
+                Gasless Transfers
               </h6>
               <p className="text-sm text-gray-500">Swap Tokens on Raydium Devnet</p>
             </div>
           </a>
         </div>
+        <h3 className="text-2xl">Integration Guides</h3>
+        <div className="mt-2.5 md:grid md:grid-cols-3 grid-rows-1 items-center gap-1 mb-2">
+          <a className="cursor-pointer rounded-sm border border-gray-300 text-black" href="/guides/creatng-wallets">
+            <div className="py-2 px-3.5 cursor-pointer relative flex flex-col mb-1.5">
+              <h6 className="mb-3 ">
+                Creating Passkey-Based Wallets with Lazorkit
+              </h6>
+              <p className="text-sm text-gray-500">Temporary wallets for frictionless onboarding </p>
+            </div>
+          </a>
+        </div>
         {/* Send Form */}
-        <div className="border border-gray-200 p-6">
+        <div className="border border-gray-200 p-6 mt-1.5">
           <div className="mb-6">
             <label
               className="block text-sm text-gray-700 mb-2"
@@ -256,7 +267,7 @@ export default function Dashboard() {
 
           {txStatus === "success" && (
             <div className="mt-5 text-sm text-center text-green-600">
-              Transaction successful : <p>{txStatus === "success" ? `View Transaction : https://solscan.io/tx/${txnsig}` : ""}</p>
+              Transaction Successful :   <p>  {txStatus === "success" ? `View Transaction : ` : ""}  {txStatus === "success" ? <a href={`https://solscan.io/tx/${txnsig}?cluster=devnet`} className="cursor-pointer">{`https://solscan.io/tx/${txnsig}?cluster=devnet`}</a> : ""}</p>
             </div>
           )}
           {txStatus === "error" && (
@@ -265,7 +276,7 @@ export default function Dashboard() {
             </div>
           )}
         </div>
-        
+
       </div>
     </div>
   );

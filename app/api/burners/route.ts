@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-
+    
     const wallet = createBurnerWallet({
       name: body.name.trim(),
       owner : body.owner.trim()

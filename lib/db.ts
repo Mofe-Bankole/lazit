@@ -27,8 +27,8 @@ class LazitDB {
       expiresAt,
     };
     
-    this.burnerWallets.set(wallet.publicKey, walletData);
 
+    this.burnerWallets.set(wallet.publicKey, walletData);
     return walletData;
   }
 
