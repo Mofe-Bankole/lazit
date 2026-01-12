@@ -7,7 +7,7 @@ import {
   SystemProgram,
 } from "@solana/web3.js";
 import { useWallet } from "@lazorkit/wallet";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { getAssociatedTokenAddress } from "@solana/spl-token";
 import config from "@/lib/config";
 import AddressButton from "@/components/AddressButton";
@@ -27,6 +27,7 @@ export default function Dashboard() {
   const [amount, setAmount] = React.useState<string>("");
   const [solBalance, setSolBalance] = React.useState<number>(0);
   const [usdcBalance, setUsdcBalance] = React.useState<number | null>(null);
+  const [txnsig , setTxnSig] = useState("")
   const [txStatus, setTxStatus] = React.useState<"idle" | "success" | "error">(
     "idle"
   );
@@ -106,6 +107,7 @@ export default function Dashboard() {
 
         await fetchUserBalances();
       }
+      setTxnSig(signature);
       alert(`Transaction Confirmed : ${signature}`);
     } catch (error: any) {
       if(error.message.includes('failed')){
@@ -253,8 +255,8 @@ export default function Dashboard() {
           </button>
 
           {txStatus === "success" && (
-            <div className="mt-4 text-sm text-green-600">
-              Transaction successful
+            <div className="mt-5 text-sm text-center text-green-600">
+              Transaction successful : <p>{txStatus === "success" ? `View Transaction : https://solscan.io/tx/${txnsig}` : ""}</p>
             </div>
           )}
           {txStatus === "error" && (
