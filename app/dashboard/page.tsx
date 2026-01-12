@@ -11,7 +11,6 @@ import React, { useEffect } from "react";
 import { getAssociatedTokenAddress } from "@solana/spl-token";
 import config from "@/lib/config";
 import AddressButton from "@/components/AddressButton";
-import Divider from "@/components/Divider";
 import { SOLANA_DEVNET_RPC, USDC_MINT } from "@/lib/constants";
 
 export default function Dashboard() {
@@ -128,7 +127,7 @@ export default function Dashboard() {
     <div className="min-h-screen bg-white text-black relative ">
       <WalletHeader />
 
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="max-w-5xl mx-auto px-4 py-8">
         {/* Account Info */}
         <div className="mb-8 pb-3 border-b border-gray-200">
           <div className="flex items-center justify-between">
@@ -180,7 +179,32 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
-
+        <div className="mt-2.5 md:grid md:grid-cols-3 grid-rows-1 items-center gap-1 mb-2 justify-">
+          <a className="cursor-pointer rounded-sm border border-gray-300 text-black" href="/examples/burner-wallets">
+            <div className="py-2 px-3.5 cursor-pointer relative flex flex-col mb-1.5">
+              <h6 className="mb-3 ">
+               Burner Wallets
+              </h6>
+              <p className="text-sm text-gray-500">Temporary wallets for frictionless onboarding </p>
+            </div>
+          </a>
+          <a className="cursor-pointer rounded-sm border border-gray-300 text-black" href="/examples/raydium-swaps">
+            <div className="py-2 px-3.5 cursor-pointer relative flex flex-col mb-1.5">
+              <h6 className="mb-3 ">
+              Raydium Swaps
+              </h6>
+              <p className="text-sm text-gray-500">Swap Tokens on Raydium Devnet</p>
+            </div>
+          </a>
+          <a className="cursor-pointer rounded-sm border border-gray-300 text-black" href="/examples/burner-wallets">
+            <div className="py-2 px-3.5 cursor-pointer relative flex flex-col mb-1.5">
+              <h6 className="mb-3 ">
+              Subscritption Service
+              </h6>
+              <p className="text-sm text-gray-500">Swap Tokens on Raydium Devnet</p>
+            </div>
+          </a>
+        </div>
         {/* Send Form */}
         <div className="border border-gray-200 p-6">
           <div className="mb-6">
@@ -239,29 +263,7 @@ export default function Dashboard() {
             </div>
           )}
         </div>
-        <div className="mt-2.5 md:grid md:grid-cols-3 grid-rows-1 items-center gap-1">
-          <a className="cursor-pointer rounded-sm border border-gray-300 text-black" href="/examples">
-            <div className="py-6 px-3.5 cursor-pointer relative flex mb-1.5">
-              <h6 className="">
-               Examples
-              </h6>
-            </div>
-          </a>
-          <a className="cursor-pointer rounded-sm border border-gray-300 text-black" href="/docs">
-            <div className="py-6 px-3.5 cursor-pointer relwative flex mb-1.5">
-              <h6 className="">
-              Docs
-              </h6>
-            </div>
-          </a>
-          <a className="cursor-pointer rounded-sm border border-gray-300 text-black" href="/guides">
-            <div className="py-6 px-3.5 cursor-pointer relative flex mb-1.5">
-              <h6 className="">
-               Guides
-              </h6>
-            </div>
-          </a>
-        </div>
+        
       </div>
     </div>
   );

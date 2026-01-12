@@ -4,6 +4,7 @@ import axios from "axios";
 import type { BurnerWallet } from "@/lib/burner";
 
 export interface BurnerModalProps {
+  owner : string;
   isOpen: boolean;
   onClose: () => void;
   onSubmit?: (wallet: BurnerWallet) => void;
@@ -13,6 +14,7 @@ export default function BurnerModal({
   isOpen,
   onClose,
   onSubmit,
+  owner,
 }: BurnerModalProps) {
   const [name, setName] = useState("");
   const [error, setError] = useState("");
@@ -36,6 +38,7 @@ export default function BurnerModal({
       // Create the burner wallet via API
       const response = await axios.post("/api/burners", {
         name: name.trim(),
+        owner : owner.trim()
       });
 
       if (response.data.success && response.data.wallet) {

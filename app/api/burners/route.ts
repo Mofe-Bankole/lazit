@@ -33,6 +33,7 @@ export async function POST(request: NextRequest) {
 
     const wallet = createBurnerWallet({
       name: body.name.trim(),
+      owner : body.owner.trim()
     });
     
     // Don't send secretKey to client for security

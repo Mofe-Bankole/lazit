@@ -3,6 +3,7 @@ import BurnerModal from "@/components/BurnerModal";
 import ConnectionButton from "@/components/ConnectionButton";
 import WalletConnect from "@/components/WalletConnect";
 import WalletHeader from "@/components/WalletHeader";
+import { BurnerWallet } from "@/lib/burner";
 import { copyToClipboard } from "@/lib/clipboard";
 import { useWallet } from "@lazorkit/wallet";
 import axios from "axios";
@@ -13,6 +14,7 @@ export default function BurnerWalletPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [wallets, setWallets] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [owner , setOwner] = useState("");
 
     async function fetchUsersBurners() {
         setLoading(true);
@@ -45,16 +47,14 @@ export default function BurnerWalletPage() {
         }
 
         try {
-            const res = await axios.delete(`/api/burners/${publicKey}`);
+            const res = await axios.post('/api/burners/delete', { publicKey });
             if (res.data.success) {
-                // Refresh the wallets list
-                await fetchUsersBurners();
-            } else {
-                alert(res.data.error || "Failed to delete wallet");
+                fetchUsersBurners();
+            }else{
+                console.log("Theres a bug here man")
             }
         } catch (error: any) {
             console.error("Error deleting wallet:", error);
-            alert(error.response?.data?.error || "Failed to delete wallet");
         }
     }
 
@@ -67,6 +67,7 @@ export default function BurnerWalletPage() {
             <WalletHeader />
             <BurnerModal
                 isOpen={isModalOpen}
+                owner={smartWalletPubkey?.toString() as string}
                 onClose={() => setIsModalOpen(false)}
                 onSubmit={() => {
                     // When the modal submits (wallet created), refresh the wallets
@@ -88,7 +89,7 @@ export default function BurnerWalletPage() {
                     {loading ? (
                         <div className="py-8 text-center text-gray-400">Loading wallets...</div>
                     ) : wallets.length > 0 ? (
-                        wallets.map((wallet, i) => (
+                        wallets.map((wallet : BurnerWallet, i) => (
                             <div key={wallet.publicKey} className="mt-8 mb-3.5 border border-gray-200 p-6">
                                 <div className="flex items-center justify-between">
                                     <span className="font-semibold text-lg">
@@ -114,6 +115,7 @@ export default function BurnerWalletPage() {
                                         Delete
                                     </button>
                                 </div>
+                                <p>{wallet.owner}</p>
                                 <div className="mt-3 text-xs text-gray-400 break-all">
                                     Public Key: {wallet.publicKey}
                                 </div>

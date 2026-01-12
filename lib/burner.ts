@@ -3,10 +3,12 @@ import { db } from "./db";
 
 export type BurnerWalletProps = {
     name : string;
+    owner : string;
 }
 
 export type BurnerWallet = {
     name : string;
+    owner : string;
     publicKey : string;
     secretKey : number[];
     createdAt : number;
@@ -17,8 +19,10 @@ export type BurnerWallet = {
 export function createBurnerWallet(props : BurnerWalletProps){
     // Generates a one time key piar
     const keypair = Keypair.generate();
+
     const result : BurnerWallet = {
         name : props.name,
+        owner : props.owner,
         publicKey : keypair.publicKey.toBase58(),
         secretKey : Array.from(keypair.secretKey),
         createdAt : Date.now(),
