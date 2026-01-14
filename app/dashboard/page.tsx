@@ -11,9 +11,9 @@ import React, { useState } from "react";
 import config from "@/lib/config";
 import AddressButton from "@/components/AddressButton";
 import { SOLANA_DEVNET_RPC } from "@/lib/constants";
-import useBalance from "../hooks/useBalances";
+import useBalance from "../../hooks/useBalances";
 import Divider from "@/components/Divider";
-import { useTransfer } from "../hooks/useTransfer";
+import { useTransfer } from "../../hooks/useTransfer";
 
 export default function Dashboard() {
   // Connect app to the Solana Devnet (devnet for now)
