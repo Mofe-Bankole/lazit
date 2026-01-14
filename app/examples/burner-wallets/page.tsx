@@ -3,8 +3,8 @@ import BurnerModal from "@/components/BurnerModal";
 import ConnectionButton from "@/components/ConnectionButton";
 import WalletConnect from "@/components/WalletConnect";
 import WalletHeader from "@/components/WalletHeader";
-import { BurnerWallet } from "@/lib/burner";
 import { copyToClipboard } from "@/lib/clipboard";
+import { BurnerWallet } from "@/lib/types";
 import { useWallet } from "@lazorkit/wallet";
 import axios from "axios";
 import { X } from "lucide-react";
@@ -178,9 +178,9 @@ export default function BurnerWalletPage() {
                             ))}
                         </div>
                     ) : (
-                        <div className="mt-7 border border-gray-300 rounded-sm px-4 py-6 text-center text-sm text-gray-500">
+                        <div className="mt-7 cursor-pointer border border-gray-300 rounded-sm px-4 py-6 text-center text-sm text-gray-500">
                             <div className="flex flex-col text-center">
-                                <X className="text-5xl mb-6 w-1/2 mx-auto" ></X>
+                                <h1 className="text-4xl"><X className="mb-6 w-1/2 mx-auto" ></X></h1>
                                 <p className="mb-2 mt-2">No burner wallets yet.</p>
                             </div>
                             {isConnected ? (

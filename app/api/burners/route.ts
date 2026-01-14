@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
-import { createBurnerWallet, type BurnerWalletProps } from "@/lib/burner";
+import { createBurnerWallet } from "@/lib/burner";
 import { NextRequest, NextResponse } from "next/server";
+import { BurnerWalletProps } from "@/lib/types";
 
 export async function GET() {
   try {

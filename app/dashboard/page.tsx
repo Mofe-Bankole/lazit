@@ -13,6 +13,7 @@ import AddressButton from "@/components/AddressButton";
 import { SOLANA_DEVNET_RPC } from "@/lib/constants";
 import useBalance from "../hooks/useBalances";
 import Divider from "@/components/Divider";
+import { useTransfer } from "../hooks/useTransfer";
 
 export default function Dashboard() {
   // Connect app to the Solana Devnet (devnet for now)
@@ -23,74 +24,18 @@ export default function Dashboard() {
 
   const { signAndSendTransaction, isSigning, smartWalletPubkey, isConnected } =
     useWallet();
-  const { fetchBalances , SolBalance, UsdcBalance, loading } = useBalance(isConnected ? smartWalletPubkey : null)
+  const sender = smartWalletPubkey?.toString() as string;
+  const { fetchBalances, SolBalance, UsdcBalance, loading } = useBalance(isConnected ? smartWalletPubkey : null)
   const [recipient, setRecipient] = React.useState<string>("");
   const [amount, setAmount] = React.useState<string>("");
-  const [txnsig, setTxnSig] = useState("")
+  const [txnsig, setTxnSig] = useState("");
+  const { handleTransactions, status, error, explorerUrl, signature } = useTransfer({ recipient, amount, sender });
   const [txStatus, setTxStatus] = React.useState<"idle" | "success" | "error">(
     "idle"
   );
   const [txError, setTxError] = React.useState<string>("");
 
-  // Function to handle sending transactions
-  const handleTransaction = async () => {
-    if (!smartWalletPubkey || !recipient || !amount) return;
-
-    if (Number(amount) > Number(SolBalance)) {
-      setTxError("Balance is less than Sending Amount");
-      setTxStatus("idle");
-      return;
-    }
-
-    try {
-      setTxStatus("idle");
-      setTxError("");
-
-      const recipientPubkey = new PublicKey(recipient);
-      const lamports = parseFloat(amount) * LAMPORTS_PER_SOL;
-
-      if (isNaN(lamports) || lamports <= 0) {
-        setTxError("Invalid amount");
-        setTxStatus("error");
-        return;
-      }
-
-      const instruction = SystemProgram.transfer({
-        fromPubkey: smartWalletPubkey,
-        toPubkey: recipientPubkey,
-        lamports,
-      });
-
-      const signature = await signAndSendTransaction({
-        instructions: [instruction],
-        transactionOptions: {
-          clusterSimulation: 'devnet'
-        },
-      });
-
-      if (signature) {
-        setTxStatus("success");
-        setRecipient("");
-        setAmount("");
-
-        await fetchBalances()
-      }
-      setTxnSig(signature);
-      alert(`Transaction Confirmed : ${signature}`);
-    } catch (error: any) {
-      if (error.message.includes('failed')) {
-        connection.requestAirdrop(
-          smartWalletPubkey,
-          1 * LAMPORTS_PER_SOL
-        );
-      }
-
-      setTxStatus("error");
-      setTxError(error.message || "Transaction failed");
-      console.log(error);
-      alert(error);
-    }
-  };
+  // Function to handle sending transaction
 
 
   return (
@@ -166,7 +111,7 @@ export default function Dashboard() {
               <p className="text-sm text-gray-500">Swap Tokens on Raydium Devnet</p>
             </div>
           </a>
-          <a className="cursor-pointer rounded-sm border border-gray-300 text-black" href="/examples/raydium-swaps">
+          <a className="cursor-pointer rounded-sm border border-gray-300 text-black" href="/examples/gasless-by-kora">
             <div className="py-2 px-3.5 cursor-pointer relative flex flex-col mb-1.5">
               <h6 className="mb-3 ">
                 Gasless Transfers
@@ -175,7 +120,7 @@ export default function Dashboard() {
             </div>
           </a>
         </div>
-        <Divider/>
+        <Divider />
         <h3 className="text-xl mt-1">Integration Guides</h3>
         <div className="mt-2.5 md:grid md:grid-cols-3 grid-rows-1 items-center gap-1 mb-2">
           <a className="cursor-pointer rounded-sm border border-gray-300 text-black" href="/guides/creating-wallets">
@@ -236,15 +181,15 @@ export default function Dashboard() {
 
           <button
             className="w-full py-2 bg-black text-white text-sm font-medium hover:bg-gray-800 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed cursor-pointer"
-            onClick={handleTransaction}
+            onClick={handleTransactions}
             disabled={!recipient || !amount || isSigning || loading}
           >
-            {isSigning ? "Sending..." : "Send ✈️"}
+            {status === "pending" ? "Sending..." : "Send"}
           </button>
 
           {txStatus === "success" && (
             <div className="mt-5 text-sm text-center text-green-600">
-              Transaction Successful :   <p>  {txStatus === "success" ? `View Transaction : ` : ""}  {txStatus === "success" ? <a href={`https://solscan.io/tx/${txnsig}?cluster=devnet`} className="cursor-pointer">{`https://solscan.io/tx/${txnsig}?cluster=devnet`}</a> : ""}</p>
+              Transaction Successful :   <p>  {status === "success" ? `View Transaction : ` : ""}  {status === "success" ? <a href={explorerUrl as string} className="cursor-pointer">{explorerUrl as string}</a> : ""}</p>
             </div>
           )}
           {txStatus === "error" && (
