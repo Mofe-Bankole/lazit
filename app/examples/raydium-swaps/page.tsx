@@ -2,10 +2,8 @@
 import Divider from "../../../components/Divider"
 import { DEV_API_URLS } from '@raydium-io/raydium-sdk-v2';
 import WalletHeader from "../../../components/WalletHeader"
-import config from "../../../lib/config"
-import { SOLANA_DEVNET_RPC } from "../../../lib/constants"
-import { Connection, useWallet } from "@lazorkit/wallet"
-import React, { useEffect, useState } from "react"
+import { Connection, PublicKey, Transaction, useWallet } from "@lazorkit/wallet"
+import React, { useState } from "react"
 import axios from "axios";
 import useBalance from "@/hooks/useBalances";
 
@@ -20,18 +18,15 @@ const TOKENS = {
     USDC: {
         symbol: 'USDC',
         name: 'USD Coin',
-        mint: '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU',
+        mint: '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU',  // Devnet
         decimals: 6,
     },
 };
 
 
 export default function Raydium() {
-    const connection = new Connection(config.SOLANA_RPC_URL || SOLANA_DEVNET_RPC, "confirmed")
-    const { smartWalletPubkey, isConnected
-        , isConnecting, isSigning, signAndSendTransaction, signMessage,
+    const { smartWalletPubkey, isConnected , signAndSendTransaction
     } = useWallet()
-    const {SolBalance , fetchBalances, UsdcBalance , loading} = useBalance(isConnected ? smartWalletPubkey : null)
     const [swapping, setSwapping] = useState(false);
     const [swapToken, setSwapToken] = useState<"SOL" | "USDC">("SOL");
     const [outputToken, setOutputToken] = useState<"SOL" | "USDC">("USDC");
@@ -39,28 +34,55 @@ export default function Raydium() {
     const [outputAmount, setOutputAmount] = useState('');
     const [quoteSuccess, setQuoteSuccess] = useState(false)
     const [error, setError] = useState("");
-    const [swapStatus , setSwapStatus] = useState<boolean>(false)
+    const [quote, setQuote] = useState<any>(null)
+    const [swapStatus, setSwapStatus] = useState<"idle" | "success" | "error">("idle");
 
     function setSOL() {
         setSwapToken("SOL")
         setOutputToken("USDC")
+        setInputAmount('');
+        setOutputAmount('');
+        setError('')
     }
     function setUSDC() {
-        setSwapToken("USDC")
-        setOutputToken("SOL")
+        setSwapToken("USDC");
+        setOutputToken("SOL");
+        setInputAmount('');
+        setOutputAmount('');
+        setError('')
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+
+    function SwapBalances({ pubkey }: { pubkey: PublicKey }) {
+        const { SolBalance, fetchBalances, UsdcBalance } = useBalance(pubkey)
+
+        return (
+            <div className="flex flex-col mb-6 border border-gray-300 cursor-pointer p-3 rounded-sm" onClick={fetchBalances}>
+                <div className="flex justify-between mb-2.5">
+                    <h6>SOL</h6>
+                    <p>{SolBalance ? SolBalance.toFixed(4) : "0.0000"}</p>
+                </div>
+                <div className="flex justify-between">
+                    <h6>USDC</h6>
+                    <p>{UsdcBalance ? UsdcBalance.toFixed(2) : "0.00"}</p>
+                </div>
+            </div>
+        )
     }
 
     const compueOutputAmount = async () => {
-        if (!smartWalletPubkey || isConnected == false || parseFloat(inputAmount) <= 0) {
-            setOutputAmount('')
+        // CHekcs some params
+        if (!smartWalletPubkey || isConnected == false || !inputAmount || parseFloat(inputAmount) <= 0) {
             setError("Multiple Variables Unset")
+            setOutputAmount('')
             return
         }
 
+        setError('')
         try {
-            const inputMint = TOKENS[swapToken as keyof typeof TOKENS].mint;
-            const outputMint = TOKENS[outputToken as keyof typeof TOKENS].mint;
-            const swapAmount = parseFloat(inputAmount) * Math.pow(10, TOKENS[swapToken as keyof typeof TOKENS].decimals);
+            const inputMint = TOKENS[swapToken].mint;
+            const outputMint = TOKENS[outputToken].mint;
+            const swapAmount = parseFloat(inputAmount) * Math.pow(10, TOKENS[swapToken].decimals);
 
             const quoteResponse = await axios.get(
                 `${DEV_API_URLS.SWAP_HOST}/compute/swap-base-in?` +
@@ -70,35 +92,93 @@ export default function Raydium() {
                 `slippageBps=50&` +
                 `txVersion=LEGACY`
             );
-            console.log(quoteResponse)
+
+            console.log(quoteResponse.data)
 
             if (!quoteResponse.data) {
                 setQuoteSuccess(false)
+                setError("Failed to Get Quote")
+                setQuote(null);
+                setSwapStatus("error")
+                return;
             }
-            
+
             const rawOutputAmount = parseFloat(quoteResponse.data.outputAmount)
             const formattedOutput = (rawOutputAmount / Math.pow(10, TOKENS[outputToken].decimals)).toFixed(6);
 
             setOutputAmount(formattedOutput);
         } catch (error) {
             console.error(error)
+            setError(`${error}`)
         }
     }
 
-    
-    useEffect(() =>{
-        fetchBalances()
-    } , [smartWalletPubkey])
-    // --- LAYOUT REWRITE STARTS HERE ---
-    // We'll make a two-column layout (on md+ screens):
-    // Left: the explanatory/note card, Right: the swap form
+
+    const executeSwap = async () => {
+        if (!quote || !quoteSuccess) {
+            setError("Error Fetching Quotes");
+            return;
+        }
+
+        if (!inputAmount) {
+            setError("Amount Not Set");
+            return
+        }
+
+        setSwapping(true);
+        setError("");
+        setSwapStatus("idle")
+
+
+        try {
+            const inputMint = TOKENS[swapToken as keyof typeof TOKENS].mint;
+            const outputMint = TOKENS[outputToken as keyof typeof TOKENS].mint;
+            // const swapAmount = parseFloat(inputAmount) * Math.pow(10, TOKENS[swapToken as keyof typeof TOKENS].decimals);
+
+            // fetch the swap from raydium
+            const { data: swapResponse } = await axios.get(`${DEV_API_URLS.SWAP_HOST}/compute/swap-base-in?...&txVersion=LEGACY`)
+            const { data: swapData } = await axios.post(`${DEV_API_URLS.SWAP_HOST}/transaction/swap-base-in`, {
+                swapResponse,
+                TxVersion: "LEGACY",
+                wallet: smartWalletPubkey?.toString(),
+                wrapSol: inputMint === TOKENS.SOL.mint,
+                unwrapSol: outputMint === TOKENS.SOL.mint,
+            })
+
+            const transactionBuffer = Buffer.from(swapData.data[0].transaction, 'base64');
+            const legacyTx = Transaction.from(transactionBuffer);
+
+            // got this fix from Codex on X
+            const COMPUTE_BUDGET_PROGRAM = new PublicKey('ComputeBudget111111111111111111111111111111');
+            const instructions = legacyTx.instructions.filter(
+                ix => !ix.programId.equals(COMPUTE_BUDGET_PROGRAM)
+            );
+
+            instructions.forEach((ix) => {
+                const hasSmartWallet = ix.keys.some(k => k.pubkey.toBase58() === smartWalletPubkey?.toString());
+                if (!hasSmartWallet) {
+                    ix.keys.push({ pubkey: smartWalletPubkey as PublicKey, isSigner: false, isWritable: false });
+                }
+            });
+
+            const signature = await signAndSendTransaction({
+                instructions,
+                transactionOptions: { computeUnitLimit: 600_000 }
+            });
+            
+            console.log(signature)
+        } catch (error : any) {
+            console.error(error)
+            alert(`Swap Unsuccessful : ${error}`)
+        }
+    }
 
     return (
         <div className="min-h-screen bg-white text-black relative">
             <WalletHeader />
             <div className="max-w-6xl mx-auto px-4 py-8">
                 <a href="/dashboard">Back</a>
-                <div className="mt-7 space-y-5">
+                <div className="mt-7 space-y-1">
                     <h3 className="text-2xl">Gasless Swaps powered by Lazorkit X Raydium</h3>
                     <Divider />
                     <div className="flex flex-col md:flex-row md:space-x-8 space-y-4 md:space-y-0">
@@ -124,15 +204,9 @@ export default function Raydium() {
                                 // Add actual swap logic here if desired
                             }}
                         >
-                            <div className="flex justify-between mb-2">
-                                <h6>SOL</h6>
-                                <p>{SolBalance}</p>
-                            </div>
-                            <div className="flex justify-between">
-                                <h6>USDC</h6>
-                                <p>{UsdcBalance}</p>
-                            </div>
+
                             <div className="mb-6">
+                                <SwapBalances pubkey={smartWalletPubkey as PublicKey} />
                                 <label
                                     className="block text-sm text-gray-700 mb-2"
                                     htmlFor="swap-amount"
@@ -187,7 +261,8 @@ export default function Raydium() {
                             <button
                                 className="w-full py-2 bg-black text-white text-sm font-medium hover:bg-gray-800 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed cursor-pointer"
                                 type="submit"
-                                disabled={!inputAmount || swapping}
+                                onClick={executeSwap}
+                                disabled={!inputAmount || swapping || !isConnected}
                             >
                                 {swapping ? "Swapping..." : "Swap"}
                             </button>

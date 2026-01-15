@@ -32,7 +32,7 @@ export default function BurnerModal({
       // Create the burner wallet via API
       const response = await axios.post("/api/burners", {
         name: name.trim(),
-        owner : owner.trim()
+        owner: owner.trim()
       });
 
       if (response.data.success && response.data.wallet) {

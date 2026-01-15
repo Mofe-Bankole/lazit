@@ -13,7 +13,7 @@ export function useBalance(walletAddr: PublicKey | null) {
     });
 
     // Fetches balances ONLY when called
-    const fetchBalances = React.useCallback(async () => {
+    const fetchBalances = async () => {
         if (!walletAddr) {
             setBalance(prev => ({
                 ...prev,
@@ -45,7 +45,7 @@ export function useBalance(walletAddr: PublicKey | null) {
                 error: `${error}`
             }));
         }
-    }, [walletAddr]);
+    };
 
     return {
         SolBalance: balance.sol,
@@ -55,4 +55,5 @@ export function useBalance(walletAddr: PublicKey | null) {
         fetchBalances
     };
 }
+
 export default useBalance

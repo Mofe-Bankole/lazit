@@ -6,10 +6,11 @@ import WalletHeader from "../../../components/WalletHeader";
 import { BurnerWallet } from "../../../lib/types";
 import { PublicKey, useWallet } from "@lazorkit/wallet";
 import axios from "axios";
-import { RefreshCw, X } from "lucide-react";
+import { X } from "lucide-react";
 import { useState, useEffect } from "react";
 import useTransfer from "@/hooks/useTransfer";
 
+// eslint-disable-next-line react-hooks/exhaustive-deps
 function BurnerBalance({ publicKey }: { publicKey: string }) {
     const {smartWalletPubkey} = useWallet();
     const { SolBalance, loading, fetchBalances, error } = useBalance(
@@ -17,12 +18,11 @@ function BurnerBalance({ publicKey }: { publicKey: string }) {
     );
 
     // Fetch on mount
-    useEffect(() => {
-        if (publicKey) {
-            fetchBalances();
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [publicKey]);
+    // useEffect(() => {
+    //     if (publicKey) {
+    //         fetchBalances();
+    //     }
+    // }, [publicKey]);
 
     return (
         <span className="text-xl font-mono flex" onClick={fetchBalances} style={{ cursor: "pointer" }}>
@@ -40,7 +40,7 @@ function BurnerBalance({ publicKey }: { publicKey: string }) {
 }
 
 function handleSweep({ recipient , sender , amount }: { recipient: string , sender : string , amount : string }){
-    const { explorerUrl , handleTransactions , beneficiary , status } = useTransfer({recipient , sender , amount });
+    const { explorerUrl , handleTransactions ,status } = useTransfer({recipient , sender , amount });
     handleTransactions()
     
     if (status === "success"){
@@ -101,6 +101,7 @@ export default function BurnerWalletPage() {
 
     function copyToClipboard(text: string) {
         navigator.clipboard.writeText(text);
+        console.log(text)
         alert("Address copied to clipboard");
     }
 
@@ -191,7 +192,7 @@ export default function BurnerWalletPage() {
                                     <div className="mt-4 flex flex-col sm:flex-row gap-2">
                                         <button
                                             className="cursor-pointer flex-1 border border-gray-300 font-semibold rounded px-3 py-2 text-sm hover:bg-gray-100 transition"
-                                            onClick={() => copyToClipboard(wallet.secretKey.toString())}
+                                            onClick={() => copyToClipboard(wallet.publicKey)}
                                         >
                                             Copy address
                                         </button>

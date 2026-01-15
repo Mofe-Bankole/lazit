@@ -1,40 +1,28 @@
 "use client";
-import WalletHeader from "../../components/WalletHeader";
-import {
-  Connection,
-  LAMPORTS_PER_SOL,
-  PublicKey,
-  SystemProgram,
-} from "@solana/web3.js";
+import { useBalance } from "@/hooks/useBalances";
+import { useTransfer } from "@/hooks/useTransfer";
 import { useWallet } from "@lazorkit/wallet";
 import React, { useState } from "react";
-import config from "../../lib/config";
 import AddressButton from "../../components/AddressButton";
-import { SOLANA_DEVNET_RPC } from "../../lib/constants";
-// import {useBalance} from "../hooks/useBalances";
 import Divider from "../../components/Divider";
-import { useBalance } from "@/hooks/useBalances"
-import { useTransfer } from "@/hooks/useTransfer";
+import WalletHeader from "../../components/WalletHeader";
 
 export default function Dashboard() {
-  // Connect app to the Solana Devnet (devnet for now)
-  const connection = new Connection(
-    config?.SOLANA_RPC_URL || SOLANA_DEVNET_RPC,
-    "confirmed"
-  );
-
-  const { signAndSendTransaction, isSigning, smartWalletPubkey, isConnected } =
+  // As at time of writing , lazit is only on devnet
+  const { isSigning, smartWalletPubkey, isConnected } =
     useWallet();
   const sender = smartWalletPubkey?.toString() as string;
   const { fetchBalances, SolBalance, UsdcBalance, loading } = useBalance(isConnected ? smartWalletPubkey : null)
   const [recipient, setRecipient] = React.useState<string>("");
   const [amount, setAmount] = React.useState<string>("");
-  const [txnsig, setTxnSig] = useState("");
-  const { handleTransactions, status, error, explorerUrl, signature } = useTransfer({ recipient, amount, sender });
-  const [txStatus, setTxStatus] = React.useState<"idle" | "success" | "error">(
-    "idle"
-  );
-  const [txError, setTxError] = React.useState<string>("");
+  const { 
+    handleTransactions, 
+    status, 
+    explorerUrl, 
+    error: txError,
+    signature,
+    amount: txAmount
+  } = useTransfer({ recipient, amount, sender });
 
   // Function to handle sending transaction
 
@@ -183,17 +171,34 @@ export default function Dashboard() {
           <button
             className="w-full py-2 bg-black text-white text-sm font-medium hover:bg-gray-800 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed cursor-pointer"
             onClick={handleTransactions}
-            disabled={!recipient || !amount || isSigning || loading}
+            disabled={!recipient || !amount || isSigning || !isConnected || loading || status === "pending"}
           >
             {status === "pending" ? "Sending..." : "Send"}
           </button>
-              
-          {txStatus === "success" && (
-            <div className="mt-5 text-sm text-center text-green-600">
-              Transaction Successful :  <p> {status === "success" ? `View Transaction : ` : ""}  {status === "success" ? <a href={explorerUrl as string} className="cursor-pointer">{explorerUrl as string}</a> : ""}</p>
+          {status === "success" && (
+            <div className="mt-5 text-sm md:text-center text-green-600">
+              <p>Transaction Successful!</p>
+              {explorerUrl && (
+                <p className="mt-2">
+                  View Transaction:{" "}
+                  <a 
+                    href={explorerUrl} 
+                    className="cursor-pointer underline hover:text-green-700" 
+                    target="_blank"
+                  >
+                    {explorerUrl}
+                  </a>
+                </p>
+              )}
+              {signature && (
+                <p className="mt-1 text-xs text-gray-500 font-mono">
+                  Signature: {signature}
+                </p>
+              )}
             </div>
           )}
-          {txStatus === "error" && (
+
+          {status === "error" && (
             <div className="mt-4 text-sm text-red-600">
               {txError || "Transaction failed"}
             </div>

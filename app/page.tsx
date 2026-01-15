@@ -1,11 +1,11 @@
- "use client";
+"use client";
 import WalletConnect from "../components/WalletConnect";
 import { useWallet } from "@lazorkit/wallet";
 import Link from "next/link";
 
 export default function Home() {
   const Xlink = "https://x.com/Mofe_bnks";
-  const { wallet , connect , isConnecting } = useWallet();
+  const { wallet, connect, isConnecting } = useWallet();
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
@@ -53,11 +53,11 @@ export default function Home() {
             </div>
           </div>
           <button
-          className="md:hidden mt-3 px-6 py-2 rounded-lg bg-black text-slate-100 cursor-pointer shadow-lg hover:bg-slate-700 transition-colors duration-200 font-medium text-lg"
-          onClick={() => connect()}
-        >
-        {isConnecting ? "Connecting..." : "Connect Wallet"}
-        </button>
+            className="md:hidden mt-3 px-6 py-2 rounded-lg bg-black text-slate-100 cursor-pointer shadow-lg hover:bg-slate-700 transition-colors duration-200 font-medium text-lg"
+            onClick={() => connect()}
+          >
+            {isConnecting ? "Connecting..." : "Connect Wallet"}
+          </button>
 
         </div>
         <p className="bg-black text-white px-3 text-center py-2">

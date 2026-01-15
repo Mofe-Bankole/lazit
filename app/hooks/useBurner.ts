@@ -3,7 +3,13 @@ import useTransfer from "./useTransfer";
 import { BurnerTransferProps, Transaction } from "../../lib/types";
 import useBalance from "./useBalances";
 import { useCallback, useState } from "react";
-import { LAMPORTS_PER_SOL, SystemProgram, Transaction as SolanaTransaction, sendAndConfirmTransaction, Keypair } from "@solana/web3.js";
+import {
+  LAMPORTS_PER_SOL,
+  SystemProgram,
+  Transaction as SolanaTransaction,
+  sendAndConfirmTransaction,
+  Keypair,
+} from "@solana/web3.js";
 import { createConnection } from "../../lib/solana";
 
 export function useBurner(props: BurnerTransferProps) {
@@ -66,17 +72,15 @@ export function useBurner(props: BurnerTransferProps) {
 
       const tx = new SolanaTransaction().add(
         SystemProgram.transfer({
-            fromPubkey : senderPubkey,
-            toPubkey : recipientPubkey,
-            lamports
+          fromPubkey: senderPubkey,
+          toPubkey: recipientPubkey,
+          lamports,
         })
-      )
+      );
 
-      const signature = await sendAndConfirmTransaction(
-        connection,
-        tx,
-        [Keypair.fromSecretKey(props.signingKey)]
-      )
+      const signature = await sendAndConfirmTransaction(connection, tx, [
+        Keypair.fromSecretKey(props.signingKey),
+      ]);
     } catch (error) {
       console.error(error);
       setBurner((prev) => ({

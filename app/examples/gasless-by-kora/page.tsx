@@ -5,13 +5,12 @@ import config from "../../../lib/config";
 import { SOLANA_DEVNET_RPC } from "../../../lib/constants";
 import { useWallet } from "@lazorkit/wallet"
 import { Connection } from "@solana/web3.js"
-import { X } from "lucide-react";
 import React, { useState } from "react";
 
 export default function GaslessTransfers() {
-    const connection = new Connection(config.SOLANA_RPC_URL || SOLANA_DEVNET_RPC, "confirmed")
+    
     const { smartWalletPubkey, isConnected
-        , isConnecting, isSigning, signAndSendTransaction, signMessage,
+        , isSigning
     } = useWallet();
     const { SolBalance, fetchBalances, UsdcBalance, loading } = useBalance(isConnected ? smartWalletPubkey : null);
     const [recipient, setRecipient] = React.useState<string>("");

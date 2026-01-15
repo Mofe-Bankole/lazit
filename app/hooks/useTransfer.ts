@@ -1,11 +1,12 @@
-import { useCallback, useState } from "react";
-import { Balances, TransactionProps, Transaction } from "../../lib/types";
-import { LAMPORTS_PER_SOL, PublicKey, SystemProgram } from "@solana/web3.js";
 import { useWallet } from "@lazorkit/wallet";
+import { LAMPORTS_PER_SOL, PublicKey, SystemProgram } from "@solana/web3.js";
+import { useState } from "react";
+import { Transaction, TransactionProps } from "../../lib/types";
 
 export function useTransfer(props: TransactionProps) {
   const { signAndSendTransaction } = useWallet();
 
+  // Initial Values 
   const [transaction, setTransaction] = useState<Transaction>({
     recipient: null,
     sender: null,
@@ -16,19 +17,25 @@ export function useTransfer(props: TransactionProps) {
     solscanurl: null,
   });
 
-  const handleTransactions = useCallback(async () => {
+  const handleTransactions = async () => {
     if (!props.recipient || !props.amount || !props.sender) {
       setTransaction((prev) => ({
         ...prev,
-        error: "A Variable was not set",
+        error: "A Variable was not supplied",
         txStatus: "error",
       }));
       return;
     }
 
     try {
+      setTransaction((prev) => ({
+        ...prev,
+        amount: props.amount,
+        recipient: props.recipient,
+        sender: props.sender,
+        txStatus: "pending",
+      }));
 
-      setTransaction(prev => ({...prev, amount : props.amount , recipient : props.recipient , sender : props.sender, txStatus : "pending"}))
       const senderPubkey = new PublicKey(props.sender as string);
       const recipientPubkey = new PublicKey(props.recipient as string);
       const lamports = parseFloat(props.amount as string) * LAMPORTS_PER_SOL;
@@ -55,24 +62,34 @@ export function useTransfer(props: TransactionProps) {
         },
       });
 
-      if (signature) {
-        setTransaction({
-          recipient: null,
-          sender: null,
-          amount: null,
-          txStatus: "success",
-          error: null,
-          signature,
-          solscanurl: `https://solscan.io/tx/${signature}?cluster=devnet`,
-        });
-        console.log(signature);
-        alert(transaction.solscanurl)
-        console.log(transaction.solscanurl);
-      }
+      const solscanurl = `https://solscan.io/tx/${signature}?cluster=devnet`;
+
+      setTransaction({
+        recipient: props.recipient,
+        sender: props.sender,
+        amount: props.amount,
+        txStatus: "success",
+        error: null,
+        signature,
+        solscanurl,
+      });
+
+      // Log the actual values being set
+      console.log("Recipient : ", props.recipient);
+      console.log("Sender : ", props.sender);
+      console.log("Amount : ", props.amount);
+      console.log("Signature : ", signature);
+      console.log("Solscanurl : ", solscanurl);
+      console.log("TxStatus : Success");
     } catch (error) {
-      console.error(error);
+      setTransaction((prev) => ({
+        ...prev,
+        error: `${error}`,
+        txStatus: "error",
+      }));
+      console.error("Transaction error:", error);
     }
-  }, [props.recipient, props.amount, props.sender, signAndSendTransaction]);
+  };
 
   return {
     beneficiary: transaction.recipient,
@@ -82,7 +99,7 @@ export function useTransfer(props: TransactionProps) {
     signature: transaction.signature,
     status: transaction.txStatus,
     amount: transaction.amount,
-    handleTransactions, 
+    handleTransactions,
   };
 }
 

@@ -20,10 +20,10 @@ const jetbrainsMono = JetBrains_Mono({
 export const CONFIG = {
   RPC_URL: config.SOLANA_RPC_URL,
   PORTAL_URL: config.PORTAL_URL,
-  PAYMASTER: { 
-    paymasterUrl: config.PAYMASTER_URL 
+  PAYMASTER: {
+    paymasterUrl: config.PAYMASTER_URL
   }
-};  
+};
 
 export default function RootLayout({
   children,
