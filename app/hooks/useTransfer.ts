@@ -74,13 +74,7 @@ export function useTransfer(props: TransactionProps) {
         solscanurl,
       });
 
-      // Log the actual values being set
-      console.log("Recipient : ", props.recipient);
-      console.log("Sender : ", props.sender);
-      console.log("Amount : ", props.amount);
-      console.log("Signature : ", signature);
-      console.log("Solscanurl : ", solscanurl);
-      console.log("TxStatus : Success");
+
     } catch (error) {
       setTransaction((prev) => ({
         ...prev,

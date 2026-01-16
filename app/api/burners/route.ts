@@ -9,9 +9,9 @@ export async function GET() {
   try {
     const wallets = db.getAllBurnerWallets();
     // Don't send secretKeys to client for security
-    const safeWallets = wallets.map(({ secretKey, ...wallet }) => wallet);
+    // const safeWallets = wallets.map(({ secretKey, ...wallet }) => wallet);
     return NextResponse.json(
-      { success: true, wallets: safeWallets, timestamp: Date.now() },
+      { success: true, wallets, timestamp: Date.now() },
       { status: 200 }
     );
   } catch (error) {
@@ -38,9 +38,7 @@ export async function POST(request: NextRequest) {
       name: body.name.trim(),
       owner : body.owner.trim()
     });
-    
-    // Don't send secretKey to client for security
-    // const { secretKey, ...safeWallet } = wallet;
+  
     
     return NextResponse.json(
       { success: true, wallet: wallet, timestamp: Date.now() },

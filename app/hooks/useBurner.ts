@@ -1,5 +1,4 @@
 import { PublicKey, useWallet } from "@lazorkit/wallet";
-import useTransfer from "./useTransfer";
 import { BurnerTransferProps, Transaction } from "../../lib/types";
 import useBalance from "./useBalances";
 import { useCallback, useState } from "react";
@@ -13,8 +12,7 @@ import {
 import { createConnection } from "../../lib/solana";
 
 export function useBurner(props: BurnerTransferProps) {
-  const { smartWalletPubkey } = useWallet();
-  const { fetchBalances, SolBalance } = useBalance(
+  const { SolBalance } = useBalance(
     new PublicKey(props.sender as string)
   );
 
@@ -59,7 +57,7 @@ export function useBurner(props: BurnerTransferProps) {
       const connection = createConnection();
       const senderPubkey = new PublicKey(props.sender as string);
       const recipientPubkey = new PublicKey(props.recipient as string);
-      const lamports = balance * LAMPORTS_PER_SOL;
+      const lamports = parseFloat(props.amount as string) *LAMPORTS_PER_SOL;
 
       if (isNaN(lamports) || lamports <= 0) {
         setBurner((prev) => ({
@@ -81,6 +79,18 @@ export function useBurner(props: BurnerTransferProps) {
       const signature = await sendAndConfirmTransaction(connection, tx, [
         Keypair.fromSecretKey(props.signingKey),
       ]);
+
+      const solscanurl = `https://solscan.io/tx/${signature}?cluster=devnet`;
+      
+      setBurner({
+        recipient : props.recipient,
+        sender : props.sender,
+        amount : props.amount,
+        txStatus : "success",
+        solscanurl,
+        signature,
+        error : null
+      })
     } catch (error) {
       console.error(error);
       setBurner((prev) => ({
@@ -89,5 +99,15 @@ export function useBurner(props: BurnerTransferProps) {
         txStatus: "error",
       }));
     }
-  }, [props.recipient]);
+  }, [props.recipient , props.amount , props.sender , props.signingKey]);
+
+  return{
+    recipient : burner.recipient,
+    explorerURL : burner.solscanurl,
+    signature : burner.signature,
+    error : burner.error,
+    amount : burner.amount,
+    status : burner.txStatus,
+    handleBurnerSweep,
+  }
 }

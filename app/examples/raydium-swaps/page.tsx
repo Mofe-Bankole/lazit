@@ -25,7 +25,7 @@ const TOKENS = {
 
 
 export default function Raydium() {
-    const { smartWalletPubkey, isConnected , signAndSendTransaction
+    const { smartWalletPubkey, isConnected, signAndSendTransaction
     } = useWallet()
     const [swapping, setSwapping] = useState(false);
     const [swapToken, setSwapToken] = useState<"SOL" | "USDC">("SOL");
@@ -57,7 +57,7 @@ export default function Raydium() {
 
         useEffect(() => {
             fetchBalances()
-        } ,[])
+        }, [])
         return (
             <div className="flex flex-col mb-6 border border-gray-300 cursor-pointer p-3 rounded-sm" onClick={fetchBalances}>
                 <div className="flex justify-between mb-2.5">
@@ -167,9 +167,9 @@ export default function Raydium() {
                 instructions,
                 transactionOptions: { computeUnitLimit: 600_000 }
             });
-            
+
             console.log(signature)
-        } catch (error : any) {
+        } catch (error: any) {
             console.error(error)
             alert(`Swap Unsuccessful : ${error}`)
         }
@@ -178,8 +178,13 @@ export default function Raydium() {
     return (
         <div className="min-h-screen bg-white text-black relative">
             <WalletHeader />
-            <div className="max-w-6xl mx-auto px-4 py-8">
-                <a href="/dashboard">Back</a>
+            <div className="max-w-5xl mx-auto px-4 py-8">
+                <a
+                    href="/dashboard"
+                    className="text-sm text-purple-700 underline"
+                >
+                    ← Back to dashboard
+                </a>
                 <div className="mt-7 space-y-1">
                     <h3 className="text-2xl">Gasless Swaps powered by <span className="text-purple-600">Lazorkit</span> X <span className="text-blue-600">Raydium</span></h3>
                     <Divider />
@@ -198,8 +203,8 @@ export default function Raydium() {
                             <p>If SOL - USDC doesnt work try USDC - SOL , raydium devnet is very tricky</p>
 
                         </div>
-                        
-           
+
+
                         <form
                             className="md:w-1/2 py-3 px-4 border border-gray-300 w-full mx-auto space-y-6 rounded-sm"
                             onSubmit={e => {
@@ -234,14 +239,14 @@ export default function Raydium() {
 
                             <div className="grid grid-cols-2 gap-2 mb-6">
                                 <button
-                                    className={`px-8 py-1.5 rounded-sm cursor-pointer focus:outline-none ${swapToken === "SOL" ? "bg-black text-white" : "bg-white border border-gray-300 text-black"}`}
+                                    className={`px-8 py-4 rounded-sm cursor-pointer focus:outline-none ${swapToken === "SOL" ? "bg-black text-white" : "bg-white border border-gray-300 text-black"}`}
                                     type="button"
                                     onClick={setSOL}
                                 >
                                     SOL
                                 </button>
                                 <button
-                                    className={`px-8 py-1.5 rounded-sm cursor-pointer ${swapToken === "USDC" ? "bg-black text-white" : "bg-white border border-gray-300 text-black"} focus:outline-none`}
+                                    className={`px-8 py-4 rounded-sm cursor-pointer ${swapToken === "USDC" ? "bg-black text-white" : "bg-white border border-gray-300 text-black"} focus:outline-none`}
                                     type="button"
                                     onClick={setUSDC}
                                 >

@@ -94,7 +94,7 @@ export default function Dashboard() {
               <p className="text-sm text-gray-500">Temporary wallets for frictionless onboarding </p>
             </div>
           </a>
-          <a className="cursor-pointer rounded-sm border border-slate-300 text-black" href="/examples/raydium-swaps">
+          <a className="hidden cursor-pointer rounded-sm border border-slate-300 text-black" href="/examples/raydium-swaps">
             <div className="py-2 px-3.5 cursor-pointer relative flex flex-col mb-1.5">
               <h6 className="mb-3 ">
                 Raydium Swaps
@@ -189,11 +189,11 @@ export default function Dashboard() {
 
                 </a>
               )}
-              {signature && (
+              {/* {signature && (
                 <p className="mt-1 text-xs text-gray-500 font-mono">
                   Signature: {signature}
                 </p>
-              )}
+              )} */}
             </div>
           )}
 
