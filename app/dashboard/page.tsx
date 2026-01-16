@@ -2,7 +2,7 @@
 import { useBalance } from "@/hooks/useBalances";
 import { useTransfer } from "@/hooks/useTransfer";
 import { useWallet } from "@lazorkit/wallet";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import AddressButton from "../../components/AddressButton";
 import Divider from "../../components/Divider";
 import WalletHeader from "../../components/WalletHeader";
@@ -15,17 +15,19 @@ export default function Dashboard() {
   const { fetchBalances, SolBalance, UsdcBalance, loading } = useBalance(isConnected ? smartWalletPubkey : null)
   const [recipient, setRecipient] = React.useState<string>("");
   const [amount, setAmount] = React.useState<string>("");
-  const { 
-    handleTransactions, 
-    status, 
-    explorerUrl, 
+  const {
+    handleTransactions,
+    status,
+    explorerUrl,
     error: txError,
     signature,
     amount: txAmount
   } = useTransfer({ recipient, amount, sender });
 
-  // Function to handle sending transaction
 
+  useEffect(() => {
+    fetchBalances()
+} ,[]);
 
   return (
     <div className="min-h-screen bg-white text-black">
@@ -73,8 +75,8 @@ export default function Dashboard() {
             onClick={fetchBalances}
           >
             {/* <div className="absolute top-0 right-0 w-6 h-6 bg-gray-300   "></div> */}
-            <div className="text-xs text-gray-500 mb-1">USDC</div>
-            <div className="text-lg font-medium">
+            <div className="text-xs text-right text-gray-500 mb-1">USDC</div>
+            <div className="text-lg text-right font-medium">
               {loading ? (
                 <span className="text-gray-400">--</span>
               ) : (
@@ -110,7 +112,7 @@ export default function Dashboard() {
           </a>
         </div>
         <Divider />
-        <h3 className="text-xl mt-1">Integration Guides</h3>
+        <h3 className="text-xl mt-0">Guides</h3>
         <div className="mt-2.5 flex flex-col md:space-y-0 space-y-2 justify-center md:grid md:grid-cols-3 md:gap-1 mb-2">
           <a className="cursor-pointer rounded-sm border border-gray-300 text-black" href="/guides/creating-wallets">
             <div className="py-2 px-3.5 cursor-pointer relative flex flex-col mb-1.5">
@@ -169,7 +171,7 @@ export default function Dashboard() {
           </div>
 
           <button
-            className="w-full py-2 bg-black text-white text-sm font-medium hover:bg-gray-800 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed cursor-pointer"
+            className="w-full py-3 rounded-sm bg-black text-white text-sm font-medium hover:bg-gray-800 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed cursor-pointer"
             onClick={handleTransactions}
             disabled={!recipient || !amount || isSigning || !isConnected || loading || status === "pending"}
           >
@@ -179,16 +181,13 @@ export default function Dashboard() {
             <div className="mt-5 text-sm md:text-center text-green-600">
               <p>Transaction Successful!</p>
               {explorerUrl && (
-                <p className="mt-2">
-                  View Transaction:{" "}
-                  <a 
-                    href={explorerUrl} 
-                    className="cursor-pointer underline hover:text-green-700" 
-                    target="_blank"
-                  >
-                    {explorerUrl}
-                  </a>
-                </p>
+                <a
+                  href={explorerUrl}
+                  className="cursor-pointer underline text-green-800 mt-2"
+                  target="_blank" >
+                  View Transaction
+
+                </a>
               )}
               {signature && (
                 <p className="mt-1 text-xs text-gray-500 font-mono">

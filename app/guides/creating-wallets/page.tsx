@@ -85,7 +85,7 @@ export default function CreatingPasskeyEnabledWallets() {
           This will create a new nextjs project in that folder upon completion{" "}
         </p>
         {/* <h3 className="w-full border border-gray-300 my-5"></h3> */}
-        <Divider/>
+        <Divider />
         <div className="mt-3">
           <h4 className="mb-3">Install Dependencies : </h4>
           <div className="bg-[#080807c4] text-white px-3 py-3 rounded-sm mb-2.5">
@@ -181,7 +181,7 @@ export default function RootLayout({
             </pre>
           </div>
           <div>
-            <Divider/>
+            <Divider />
             <h6 className="text-2xl mb-2">
               Adding Wallet Connection Functionality
             </h6>
@@ -238,13 +238,13 @@ export default function WalletConnect() {
               useWallet() hook <br className="mt-1" />
             </p>
             <p className="mb-2">
-            Example Component:
+              Example Component:
             </p>
             <div className="bg-[#080807c4] text-white px-3 py-3 rounded-sm mb-2.5">
-            <pre
-              className={`whitespace-pre overflow-hidden wrap-break-word md:text-sm text-[11px] ${jetbrainsMono.variable}`}
-            >
-              {`
+              <pre
+                className={`whitespace-pre overflow-hidden wrap-break-word md:text-sm text-[11px] ${jetbrainsMono.variable}`}
+              >
+                {`
 import { useWallet } from "@lazorkit/wallet";
 
 // For simplicitys sake , clicking on this header copies the address to the clipboard
@@ -262,12 +262,21 @@ export default function AddressButton(){
     )
 }
               `}
-            </pre>
+              </pre>
+            </div>
+            <p className="mb-2.5">And there u have it you can now create a passkey-based wallet
+              we can now use this wallet to make transactions</p>
+              <p className="mb-2.5">To fund your newly created wallet . <br/>Visit <a href="https://faucet.solana.com" target="_blank" className="underline">Solana Faucet</a> and <a target="_blank" href="https://faucet.circle.com"className="underline">Circle Faucet</a> for SOL and USDC repectively</p>
+            <p>We can now move to <a href="/guides/triggering-gasless-txns" className="text-blue-700" target="_blank">Triggering Gasless Transactions sponsored by Kora</a></p>
           </div>
-          <p className="mb-2.5">And there u have it you can now create a passkey-based wallet
-          we can now use this wallet to make transactions</p>
-          <p>We can now move to <a href="/guides/triggering-gasless-txns" className="text-blue-700" target="_blank">Triggering Gasless Transactions sponsored by Kora</a></p>
-        </div>
+          <Divider/>
+          <div className="mt-3">
+            <h1 className="text-xl mb-1.5">References</h1>
+            <ul className="space-y-1">
+              <li><a href="https://docs.lazorkit.com/" target="_blank">Lazorkit Docs</a></li>
+              <li><a href="">Nextjs Documentation</a></li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>

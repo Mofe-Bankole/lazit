@@ -5,21 +5,17 @@ This guide assumes you have finished the Creating Passkey-Based Wallets with Laz
 To trigger transactions using Lazorkit, youll need to expose some functions provided by Lazorkits own useWallet() hook
 
 ```ts
- import { useWallet } from "@lazorkit/wallet";
- import React, { useEffect } from "react";
-  
- const { signAndSendTransaction, isSigning, smartWalletPubkey, isConnected } =
+import { useWallet } from "@lazorkit/wallet";
+import React, { useEffect , useState } from "react";
+
+  const { signAndSendTransaction, isSigning, smartWalletPubkey, isConnected } =
     useWallet();
-   
- const [recipient, setRecipient] = React.useState<string>("");
- const [amount, setAmount] = React.useState<string>("");
+  const [txStatus, setTxStatus] = useState<"idle" | "success" | "error" | "pending">("idle");
+  const [recipient, setRecipient] = useState<string>("");
+  const [amount, setAmount] = useState<string>("");
  
- const handleTransaction = async () => {
+  const handleTransaction = async () => {
     if (!smartWalletPubkey || !recipient || !amount) return;
-    if (Number(amount) > solBalance) {
-      setTxError("Balance is less than Sending Amount");
-      setTxStatus("idle");
-    }
 
     try {
       setTxStatus("idle");
@@ -42,7 +38,7 @@ To trigger transactions using Lazorkit, youll need to expose some functions prov
       const signature = await signAndSendTransaction({
         instructions: [instruction],
         transactionOptions: {
-          feeToken: "USDC",
+          clusterSimulation : 'devnet' // This is for devnet
         },
       });
 
@@ -52,14 +48,13 @@ To trigger transactions using Lazorkit, youll need to expose some functions prov
         setAmount("");
         await fetchUserBalances();
       }
-      alert(`Transaction Confirmed : ${signature}`);
-    } catch (error: any) {
-      setTxStatus("error");
-      setTxError(error.message || "Transaction failed");
-      console.log(error);
-      alert(error);
-    }
-  };
+        alert("Transaction Successful")
+        // View the transaction on the Solscan Devnet
+        console.log(`https://solscan.io/tx/${signature}?cluster=devnet`);
+    } catch(error){
+      console.error(error)
+    }
+}
 ```
 
 

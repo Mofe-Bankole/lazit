@@ -12,7 +12,7 @@ import useTransfer from "@/hooks/useTransfer";
 
 // eslint-disable-next-line react-hooks/exhaustive-deps
 function BurnerBalance({ publicKey }: { publicKey: string }) {
-    const {smartWalletPubkey} = useWallet();
+    const { smartWalletPubkey } = useWallet();
     const { SolBalance, loading, fetchBalances, error } = useBalance(
         publicKey ? new PublicKey(publicKey) : null
     );
@@ -39,13 +39,13 @@ function BurnerBalance({ publicKey }: { publicKey: string }) {
     );
 }
 
-function handleSweep({ recipient , sender , amount }: { recipient: string , sender : string , amount : string }){
-    const { explorerUrl , handleTransactions ,status } = useTransfer({recipient , sender , amount });
+function handleSweep({ recipient, sender, amount }: { recipient: string, sender: string, amount: string }) {
+    const { explorerUrl, handleTransactions, status } = useTransfer({ recipient, sender, amount });
     handleTransactions()
-    
-    if (status === "success"){
+
+    if (status === "success") {
         return "success"
-    }else{
+    } else {
         return "failure"
     }
 }
@@ -120,10 +120,10 @@ export default function BurnerWalletPage() {
 
             <main className="flex-1 w-full">
                 <div className="max-w-4xl mx-auto px-4 py-6 sm:py-8">
-                    <div className="flex items-center justify-between gap-3 mb-4">
+                    <div className="flex items-center justify-between gap-3 mb-3">
                         <a
                             href="/dashboard"
-                            className="text-sm text-gray-600 hover:underline"
+                            className="text-sm text-purple-600 underline"
                         >
                             ← Back to dashboard
                         </a>
@@ -135,8 +135,8 @@ export default function BurnerWalletPage() {
                         </button>
                     </div>
 
-                    <header className="mb-6">
-                        <h1 className="text-xl sm:text-2xl font-semibold mb-1">
+                    <header className="mb-4">
+                        <h1 className="text-xl sm:text-2xl font-semibold mb-3">
                             Burner Wallets
                         </h1>
                         <p className="text-sm text-gray-600">
@@ -145,10 +145,10 @@ export default function BurnerWalletPage() {
                         </p>
                     </header>
 
-                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-4">
+                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-5">
                         {isConnected ? (
                             <button
-                                className="cursor-pointer bg-black text-white rounded-sm px-4 py-2 text-sm font-semibold flex-1 sm:flex-none text-center"
+                                className="cursor-pointer bg-black text-white rounded-sm px-4 py-3 text-sm font-semibold flex-1 sm:flex-none text-center"
                                 onClick={toggleModal}
                             >
                                 Create new burner
@@ -172,7 +172,7 @@ export default function BurnerWalletPage() {
                                     className="border border-gray-200 rounded-sm px-4 py-4 sm:px-6 sm:py-5"
                                 >
                                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                                        <div>
+                                        <div className="">
                                             <div className="text-sm text-gray-500 mb-0.5">
                                                 Burner {i + 1}
                                             </div>
@@ -190,30 +190,22 @@ export default function BurnerWalletPage() {
                                     </div>
 
                                     <div className="mt-4 flex flex-col sm:flex-row gap-2">
+                                        <button className="cursor-pointer flex-1 border border-gray-300 font-semibold rounded px-3 py-2 text-sm hover:bg-green-100 transition">
+                                            Send
+                                        </button>
                                         <button
                                             className="cursor-pointer flex-1 border border-gray-300 font-semibold rounded px-3 py-2 text-sm hover:bg-gray-100 transition"
                                             onClick={() => copyToClipboard(wallet.publicKey)}
                                         >
-                                            Copy address
+                                            Receive
                                         </button>
-                                        <button className="cursor-pointer flex-1 border border-gray-300 font-semibold rounded px-3 py-2 text-sm hover:bg-gray-200 transition">
-                                            Sweep to Main
-                                        </button>
+
                                         <button
                                             onClick={() => handleDeleteWallet(wallet.publicKey)}
-                                            className="cursor-pointer flex-1 border border-red-400 text-red-600 font-semibold rounded px-3 py-2 text-sm hover:bg-red-100 transition"
+                                            className="cursor-pointer flex-1 border border-red-400 text-red-600 font-semibold rounded px-3 py-2 text-sm hover:bg-red-200 transition"
                                         >
                                             Delete
                                         </button>
-                                    </div>
-
-                                    <div className="mt-3 space-y-1">
-                                        <div className="text-xs text-gray-500 break-all">
-                                            Owner: {wallet.owner}
-                                        </div>
-                                        <div className="text-xs text-gray-500 break-all">
-                                            Public key: {wallet.publicKey}
-                                        </div>
                                     </div>
                                 </div>
                             ))}

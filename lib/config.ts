@@ -8,7 +8,7 @@ const PORTAL_URL = process.env.NEXT_PUBLIC_PORTAL_URL;
 
 // PAYMASTER URL
 // Allows us to initiate smart, gasless transactions on the Solana chain
-// We use Kora for our paymaster
+// We use Kora as our paymaster
 const PAYMASTER_URL = process.env.NEXT_PUBLIC_PAYMASTER_URL as string;
 
 const config = { SOLANA_RPC_URL, PORTAL_URL, PAYMASTER_URL };

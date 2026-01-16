@@ -3,7 +3,7 @@ import useBalance from "@/hooks/useBalances";
 import useTransfer from "@/hooks/useTransfer";
 import { useWallet } from "@lazorkit/wallet";
 import { PublicKey } from "@solana/web3.js";
-import React, { useEffect } from "react";
+import React from "react";
 import Divider from "../../../components/Divider";
 import WalletHeader from "../../../components/WalletHeader";
 
@@ -16,7 +16,7 @@ export default function GaslessTransfers() {
     const [recipient, setRecipient] = React.useState<string>("");
     const [amount, setAmount] = React.useState<string>("");
     const sender = smartWalletPubkey ? smartWalletPubkey.toString() : "";
-    const {explorerUrl , status , error, signature} = useTransfer({recipient , amount , sender});
+    const {explorerUrl , status , error} = useTransfer({recipient , amount , sender});
 
     function SenderBalances({ pubkey }: { pubkey: PublicKey }) {
         const { SolBalance, fetchBalances, UsdcBalance } = useBalance(pubkey)
@@ -42,13 +42,13 @@ export default function GaslessTransfers() {
                 <div className="mb-4">
                  <a
                             href="/dashboard"
-                            className="text-sm text-gray-600 hover:underline"
+                            className="text-sm text-purple-700 underline"
                         >
                             ← Back to dashboard
                         </a>
                         </div>
                 <div className="text-normal">
-                    <p className="text-xl">So how exactly does Lazorkit trigger <span className="font-bold text-purple-500 contrast-75">Gasless Transactions ?</span></p>
+                    <p className="text-xl">So how exactly does Lazorkit trigger <span className="text-purple-500 contrast-75">Gasless Transactions ?</span></p>
                     <Divider />
                     <p className="mb-3">Thats all thanks to <a href="https://launch.solana.com/products/kora" className="text-[#483939f2]" target="_blank">Kora</a>. <br /><a href="https://launch.solana.com/products/kora" className="text-[#483939f2]" target="_blank">Kora</a> is a solana signing structure that handles gas fees without removing as much as a cent from users accounts</p>
                     <p className="mb-3">Users can also pay fees in USDC, BONK or in your apps native token </p>
@@ -94,7 +94,7 @@ export default function GaslessTransfers() {
                     </div>
 
                     <button
-                        className="w-full py-2 bg-black text-white text-sm font-medium hover:bg-gray-800 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed cursor-pointer"
+                        className="w-full py-3 rounded-sm bg-black text-white text-sm font-medium hover:bg-gray-800 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed cursor-pointer"
                         // onClick={handleTransaction}
                         disabled={!recipient || !amount || isSigning || loading || !smartWalletPubkey}
                     >

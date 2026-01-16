@@ -3,7 +3,7 @@ import Divider from "../../../components/Divider"
 import { DEV_API_URLS } from '@raydium-io/raydium-sdk-v2';
 import WalletHeader from "../../../components/WalletHeader"
 import { Connection, PublicKey, Transaction, useWallet } from "@lazorkit/wallet"
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import axios from "axios";
 import useBalance from "@/hooks/useBalances";
 
@@ -51,11 +51,13 @@ export default function Raydium() {
         setOutputAmount('');
         setError('')
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
 
     function SwapBalances({ pubkey }: { pubkey: PublicKey }) {
         const { SolBalance, fetchBalances, UsdcBalance } = useBalance(pubkey)
 
+        useEffect(() => {
+            fetchBalances()
+        } ,[])
         return (
             <div className="flex flex-col mb-6 border border-gray-300 cursor-pointer p-3 rounded-sm" onClick={fetchBalances}>
                 <div className="flex justify-between mb-2.5">
@@ -179,11 +181,11 @@ export default function Raydium() {
             <div className="max-w-6xl mx-auto px-4 py-8">
                 <a href="/dashboard">Back</a>
                 <div className="mt-7 space-y-1">
-                    <h3 className="text-2xl">Gasless Swaps powered by Lazorkit X Raydium</h3>
+                    <h3 className="text-2xl">Gasless Swaps powered by <span className="text-purple-600">Lazorkit</span> X <span className="text-blue-600">Raydium</span></h3>
                     <Divider />
                     <div className="flex flex-col md:flex-row md:space-x-8 space-y-4 md:space-y-0">
                         {/* LEFT: NOTE SECTION */}
-                        <div className="md:w-1/2 border border-red-400 px-4 py-2.5 flex flex-col space-y-4 rounded-sm">
+                        <div className="md:w-1/2 border border-gray-300  px-4 py-2.5 flex flex-col space-y-4 rounded-sm">
                             <h4 className="mb-2">NOTE</h4>
                             <p>
                                 Swapping on Raydium(Devnet) is limited and its integration posed a great challange for me 🥲
@@ -197,7 +199,7 @@ export default function Raydium() {
 
                         </div>
                         
-                        {/* SWAP FORM SECTION */}
+           
                         <form
                             className="md:w-1/2 py-3 px-4 border border-gray-300 w-full mx-auto space-y-6 rounded-sm"
                             onSubmit={e => {

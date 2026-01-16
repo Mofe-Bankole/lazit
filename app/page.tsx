@@ -29,16 +29,16 @@ export default function Home() {
       {/* Right Side */}
       <div className="md:w-1/2 w-full bg-white text-black flex flex-col justify-between min-h-screen">
         <div className="flex-1 flex flex-col justify-center px-3 py-6">
-          <h1 className="mb-3 text-3xl">Lazit</h1>
+          <h1 className="mb-3 text-3xl text-purple-600">Lazit</h1>
           <h3 className="mb-3">
-            Lazit: The next-generation wallet designed so you never have to write down or remember a seed phrase.
+            The next-generation wallet designed so you never have to write down or remember a seed phrase.
           </h3>
           <h4 className="mb-2">No seed phrase hassle. Just secure, seamless access to your crypto.</h4>
           <h4 className="mb-2">Lazit uses passkey technology to make wallet management simpler and safer.</h4>
-          <h5 className="mt-2">
+          <h5 className="mb-2">
             Try it out and experience passwordless, seedless crypto for yourself!
           </h5>
-          <div className="md:grid hidden grid-cols-1 sm:grid-cols-2 gap-3 mt-6">
+          <div className="md:grid hidden grid-cols-1 md:grid-cols-2 gap-3 mt-6">
             <div className="flex border border-gray-300 px-1.5 py-4 rounded-sm cursor-pointer">
               Passkey-enabled Wallet
             </div>
@@ -48,17 +48,26 @@ export default function Home() {
             <div className="flex border border-gray-300 px-1.5 py-4 rounded-sm cursor-pointer">
               Wallet Sweeping Management
             </div>
-            <div className="flex border border-gray-300 px-1.5 py-4 rounded-sm cursor-pointer">
-              Feature
-            </div>
+           
           </div>
           <button
-            className="md:hidden mt-3 px-6 py-2 rounded-lg bg-black text-slate-100 cursor-pointer shadow-lg hover:bg-slate-700 transition-colors duration-200 font-medium text-lg"
+            className="md:hidden mt-4.5 px-6 py-3 rounded-lg bg-black text-slate-100 cursor-pointer shadow-lg hover:bg-slate-700 transition-colors duration-200 font-medium text-lg"
             onClick={() => connect()}
           >
             {isConnecting ? "Connecting..." : "Connect Wallet"}
           </button>
-
+          <div className="md:hidden flex flex-col gap-2 mt-3">
+            <div className="flex border-gray-300 border-b-[1.5] px-1.5 py-4 rounded-sm cursor-pointer">
+              Passkey-enabled Wallet
+            </div>
+            <div className="flex border-gray-300 border-b-[1.5]  px-1.5 py-4 rounded-sm cursor-pointer">
+              Integration Guides
+            </div>
+            <div className="flex border-gray-300 border-b-[1.5] px-1.5 py-4 rounded-sm cursor-pointer">
+              Wallet Sweeping Management
+            </div>
+           
+          </div>
         </div>
         <p className="bg-black text-white px-3 text-center py-2">
           Powered by{" "}
