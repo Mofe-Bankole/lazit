@@ -1,3 +1,4 @@
+import {PublicKey} from "@solana/web3.js"
 export interface BurnerModalProps {
   owner: string;
   isOpen: boolean;
@@ -45,13 +46,23 @@ export interface TransactionProps {
 export interface BurnerTransferProps {
   recipient: string | null;
   signingKey: Uint8Array;
-  sender: string | null;
+  sender: PublicKey | null;
   amount: string | null;
 }
 
 export interface Transaction {
   recipient: string | null;
   sender: string | null;
+  amount: string | null;
+  error: string | null;
+  txStatus: "idle" | "success" | "error" | "pending";
+  signature: string | null;
+  solscanurl: string | null;
+}
+
+export interface BurnerTransaction {
+  recipient: string | null;
+  sender: PublicKey | null,
   amount: string | null;
   error: string | null;
   txStatus: "idle" | "success" | "error" | "pending";

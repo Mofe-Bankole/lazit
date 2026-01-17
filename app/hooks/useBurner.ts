@@ -1,5 +1,5 @@
-import { PublicKey, useWallet } from "@lazorkit/wallet";
-import { BurnerTransferProps, Transaction } from "../../lib/types";
+import { useWallet } from "@lazorkit/wallet";
+import { BurnerTransferProps, BurnerTransaction } from "../../lib/types";
 import useBalance from "./useBalances";
 import { useCallback, useState } from "react";
 import {
@@ -8,15 +8,16 @@ import {
   Transaction as SolanaTransaction,
   sendAndConfirmTransaction,
   Keypair,
+  PublicKey
 } from "@solana/web3.js";
 import { createConnection } from "../../lib/solana";
 
 export function useBurner(props: BurnerTransferProps) {
   const { SolBalance } = useBalance(
-    new PublicKey(props.sender as string)
+    props.sender
   );
 
-  const [burner, setBurner] = useState<Transaction>({
+  const [burner, setBurner] = useState<BurnerTransaction>({
     recipient: null,
     sender: null,
     amount: null,
@@ -34,6 +35,7 @@ export function useBurner(props: BurnerTransferProps) {
         txStatus: "error",
       }));
       return;
+
     }
     const balance = SolBalance as number;
 
@@ -51,11 +53,12 @@ export function useBurner(props: BurnerTransferProps) {
         ...prev,
         amount: props.amount,
         recipient: props.recipient,
-        sender: props.sender,
+        sender: props.sender as PublicKey,
         txStatus: "pending",
       }));
+
       const connection = createConnection();
-      const senderPubkey = new PublicKey(props.sender as string);
+      const senderPubkey = props.sender;
       const recipientPubkey = new PublicKey(props.recipient as string);
       const lamports = parseFloat(props.amount as string) *LAMPORTS_PER_SOL;
 
@@ -76,8 +79,10 @@ export function useBurner(props: BurnerTransferProps) {
         })
       );
 
+      const keypair = Keypair.fromSecretKey( Uint8Array.from(props.signingKey))
+
       const signature = await sendAndConfirmTransaction(connection, tx, [
-        Keypair.fromSecretKey(props.signingKey),
+        keypair
       ]);
 
       const solscanurl = `https://solscan.io/tx/${signature}?cluster=devnet`;
@@ -92,7 +97,7 @@ export function useBurner(props: BurnerTransferProps) {
         error : null
       })
     } catch (error) {
-      console.error(error);
+      console.error(`Theres an error : ${error}`);
       setBurner((prev) => ({
         ...prev,
         error: `${error}`,

@@ -47,9 +47,10 @@ export default function BurnerWalletPage() {
     const [wallets, setWallets] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [sending, setSending] = useState(true);
+    const [sendingTransaction , setSendingTransaction] = useState(false);
     const [amount, setAmount] = useState("");
     const [recipient, setRecipient] = useState("");
-    const [sender, setSender] = useState("");
+    const [sender, setSender] = useState<PublicKey | null>(null);
     const [currentSigner, setCurrentSigner] = useState<any>("null");
     const [sweepStatus, setSweepStatus] = useState<"idle" | "success" | "error" | "pending">("idle");
     const [url, setUrl] = useState("");
@@ -60,25 +61,33 @@ export default function BurnerWalletPage() {
         setSweepStatus("idle");
         setRecipient("");
         setAmount("");
+        setSendingTransaction(false)
         setCurrentSigner("")
     }
-
-    function handleSweep(sender: string, secretKey: any) {
+    
+    function handleSweep(sender: PublicKey, secretKey: any) {
         if (!sender) return;
         setSending(true)
         setCurrentSigner(secretKey),
-            setSender(sender);
+        setSender(sender);
         console.log("Money was swept")
     }
 
+    const { explorerURL, status, handleBurnerSweep , error } = useBurner({ recipient, sender, amount, signingKey: currentSigner });
+
     function finalizeSweep() {
-        const { explorerURL, signature, status, handleBurnerSweep } = useBurner({ recipient, sender, amount, signingKey: currentSigner });
+        setSendingTransaction(true)
         handleBurnerSweep();
+        if (error){
+            setSendingTransaction(false)
+            console.log(error);
+        }
         if (status === "success") {
             setUrl(explorerURL as string)
         }
         setSweepStatus(status)
     }
+
     async function fetchUsersBurners() {
         setLoading(true);
         setSending(false)
@@ -213,7 +222,7 @@ export default function BurnerWalletPage() {
                                     </div>
 
                                     <div className="mt-4 flex flex-col sm:flex-row gap-2 mb-2.5">
-                                        {sending && sender == wallet.publicKey ? "" : <button className="cursor-pointer flex-1 border border-gray-300 font-semibold rounded px-3 py-2 text-sm hover:bg-green-100 transition" onClick={() => { handleSweep(wallet.publicKey, wallet.secretKey) }}>
+                                        {sending && sender?.toString() == wallet.publicKey ? "" : <button className="cursor-pointer flex-1 border border-gray-300 font-semibold rounded px-3 py-2 text-sm hover:bg-green-100 transition" onClick={() => { handleSweep(new PublicKey(wallet.publicKey), wallet.secretKey) }}>
                                             Send
                                         </button>}
                                         <button
@@ -237,7 +246,7 @@ export default function BurnerWalletPage() {
                                         View Transaction
 
                                     </a></div> : ""}
-                                    {sending && sender === wallet.publicKey ? <div className="flex flex-col">
+                                    {sending && sender?.toString() === wallet.publicKey ? <div className="flex flex-col">
                                         <input className="rounded-sm px-2 py-2.5 outline-none border border-gray-300 mb-1.5" placeholder="Address" id="recipient" onChange={(e) => setRecipient(e.target.value)}/>
                                         <input 
                                             className="text-right rounded-sm px-2 py-2.5 outline-none border border-gray-300" placeholder="Amount in SOL" id="amount"
@@ -245,7 +254,7 @@ export default function BurnerWalletPage() {
                                             step="0.0001"
                                             min="0" onChange={(e) => setAmount(e.target.value)} />
                                         <button className="mt-2.5 cursor-pointer flex-1 border border-gray-300 font-semibold rounded px-3 py-2 text-sm hover:bg-green-100 transition" onClick={() => { finalizeSweep() }}>
-                                            Send
+                                            {sendingTransaction ? "..." : "Send"}
                                         </button>
                                     </div> : ""}
                                 </div>
