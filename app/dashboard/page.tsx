@@ -27,7 +27,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchBalances()
-} ,[]);
+  }, []);
 
   return (
     <div className="min-h-screen bg-white text-black">
@@ -53,7 +53,7 @@ export default function Dashboard() {
         </div>
 
         {/* Balances */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div
             className="border border-gray-300 p-4 cursor-pointer"
             onClick={fetchBalances}
@@ -85,8 +85,10 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
+        <p className="sm:text-center">Visit The <a href="https://faucet.solana.com" className="text-[#331a90]" target="_blank">Solana Faucet</a> and <a href="https://faucet.circle.com" className="text-blue-600" target="_blank">Circle Faucet</a> to get Devnet SOL and USDC respectively</p>
+        <Divider />
         <div className="mt-2.5 flex flex-col md:space-y-0 space-y-2 justify-center md:grid md:grid-cols-3 md:gap-1 mb-2">
-          <a className="cursor-pointer rounded-sm border border-slate-300 text-black" href="/examples/burner-wallets">
+          <a className="cursor-pointer rounded-sm border border-slate-300 text-black  transition" href="/examples/burner-wallets">
             <div className="py-2 px-3.5 cursor-pointer flex flex-col mb-1.5">
               <h6 className="mb-3 ">
                 Burner Wallets
@@ -94,7 +96,7 @@ export default function Dashboard() {
               <p className="text-sm text-gray-500">Temporary wallets for frictionless onboarding </p>
             </div>
           </a>
-          <a className="hidden cursor-pointer rounded-sm border border-slate-300 text-black" href="/examples/raydium-swaps">
+          <a className="cursor-pointer rounded-sm border border-slate-300 text-black" href="/examples/raydium-swaps">
             <div className="py-2 px-3.5 cursor-pointer relative flex flex-col mb-1.5">
               <h6 className="mb-3 ">
                 Raydium Swaps
@@ -112,7 +114,7 @@ export default function Dashboard() {
           </a>
         </div>
         <Divider />
-        <h3 className="text-xl mt-0">Guides</h3>
+        <h3 className="text-xl mt-0 mb-2">Guides</h3>
         <div className="mt-2.5 flex flex-col md:space-y-0 space-y-2 justify-center md:grid md:grid-cols-3 md:gap-1 mb-2">
           <a className="cursor-pointer rounded-sm border border-gray-300 text-black" href="/guides/creating-wallets">
             <div className="py-2 px-3.5 cursor-pointer relative flex flex-col mb-1.5">
@@ -189,11 +191,6 @@ export default function Dashboard() {
 
                 </a>
               )}
-              {/* {signature && (
-                <p className="mt-1 text-xs text-gray-500 font-mono">
-                  Signature: {signature}
-                </p>
-              )} */}
             </div>
           )}
 

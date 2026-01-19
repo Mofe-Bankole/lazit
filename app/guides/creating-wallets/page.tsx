@@ -1,7 +1,8 @@
 "use client";
-import Divider from "../../../components/Divider";
-import { JetBrains_Mono } from "next/font/google";
 
+import Divider from "../../../components/Divider";
+import WalletHeader from "../../../components/WalletHeader";
+import { JetBrains_Mono } from "next/font/google";
 
 const jetbrainsMono = JetBrains_Mono({
   weight: ["400", "500", "600"],
@@ -9,144 +10,136 @@ const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
 });
 
-export default function CreatingPasskeyEnabledWallets() {
-  function copyCode(text: string) {
-    navigator.clipboard.writeText(text);
-  }
+/* --------------------------------- */
+/* UI HELPERS                         */
+/* --------------------------------- */
+
+const Section = ({ title, children }: any) => (
+  <section className="mb-12">
+    <h3 className="text-2xl font-medium mb-3">{title}</h3>
+    {children}
+  </section>
+);
+
+const Callout = ({ type = "info", children }: any) => {
+  const styles : any = {
+    info: "border-blue-500 bg-blue-50 text-blue-900",
+    warn: "border-yellow-500 bg-yellow-50 text-yellow-900",
+    success: "border-green-500 bg-green-50 text-green-900",
+  };
+
   return (
-    <div className="min-h-screen bg-white text-black relative --font-outfit">
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <a href="/dashboard"> 👈 Back</a>
-        <h2 className="md:text-3xl text-[20.7px] mb-6 mt-1.5">
-          Creating Passkey-Based Wallets with Lazorkit
-        </h2>
-        <p className="mb-1.5">
-          Many people in the web3 space use seed-phrase wallets such as{" "}
-          <a href="https://phantom.com/" target="_blank">
-            <span className="font-semibold text-[#AB9FF2]">Phantom</span>
-          </a>{" "}
-          or{" "}
-          <a href="https://solflare.com/" target="_blank">
-            <span className="font-semibold text-[#fff046fb] contrast-less:">
-              Solflare
-            </span>
-          </a>
-          . Users with little knowledge of the blockchain have to install this
-          third-party apps in order to send , receive tokens. They might forget
-          to save their seed phrases and might even get tired of the onboarding
-          process
+    <div className={`border-l-4 p-4 my-6 text-sm ${styles[type]}`}>
+      {children}
+    </div>
+  );
+};
+
+/* --------------------------------- */
+/* PAGE                               */
+/* --------------------------------- */
+
+export default function CreatingPasskeyEnabledWallets() {
+  return (
+    <div className="min-h-screen bg-white text-black">
+      <WalletHeader />
+
+      <div className="max-w-4xl mx-auto px-4 py-10">
+        {/* BACK */}
+        <a
+          href="/dashboard"
+          className="text-purple-600 underline text-sm mb-3 inline-block"
+        >
+          ← Back to dashboard
+        </a>
+
+        {/* TITLE */}
+        <h1 className="md:text-3xl text-[22px] font-semibold mb-4">
+          Creating Passkey-Based Wallets with{" "}
+          <span className="text-purple-600">Lazorkit</span>
+        </h1>
+
+        {/* INTRO */}
+        <p className="text-gray-700 mb-4">
+          Traditional wallets rely on seed phrases, browser extensions, and long
+          onboarding flows. This is fragile, intimidating, and easy to mess up.
         </p>
-        <p>
-          With{" "}
-          <a
-            href="https://lazorkit.com/"
-            target="_blank"
-            className="text-[#8b79f4]"
-          >
-            Lazorkit
-          </a>{" "}
-          developers can create wallets that are passkey-enabled and use them in
-          several applications
-          <br />
+
+        <p className="text-gray-700 mb-6">
+          Lazorkit lets you create <strong>passkey-enabled wallets</strong> —
+          secured by the device itself and usable directly inside your app.
         </p>
-        <p className="mt-1.5">Wanna know how ? Then Lets Begin...</p>
-        <h3 className="w-full border border-gray-300 my-5"></h3>
-        <div className="flex flex-col">
-          <h4 className="mb-2 md:text-[19px]">Prerequisites</h4>
-          <ul className="space-y-0.5 mb-2">
+
+        <Callout type="success">
+          No extensions. No seed phrases. Just passkeys.
+        </Callout>
+
+        <Divider />
+
+        {/* PREREQUISITES */}
+        <Section title="Prerequisites">
+          <ul className="list-disc pl-6 text-gray-700 space-y-1">
             <li>
               <a
                 href="https://nodejs.org/en"
                 target="_blank"
-                className="text-green-900"
+                className="underline"
               >
-                Nodejs
+                Node.js
               </a>{" "}
-              v20 or later
+              v20+
             </li>
-            <li>Visual Studio Code, Zed, Cursor or any IDE of your choice</li>
-            <li>Chrome Browser (Recommended)</li>
+            <li>Any modern IDE (VS Code, Zed, Cursor)</li>
+            <li>Chrome (recommended for passkeys)</li>
           </ul>
-        </div>
-        <p className="mb-2">
-          Locate your destination folder (I usually use documents on my PC) and
-          open the terminal there, then paste this command to create a new
-          nextjs app
-        </p>
-        <div className="bg-[#080807c4] text-white px-3 py-3 rounded-sm mb-2.5">
-          <code
-            lang="shell code-1"
-            className={`${jetbrainsMono.variable} md:text-sm text-[11px]`}
-          >
-            npx create-next-app@latest passkey_build
-          </code>
-        </div>
-        <p>
-          This will create a new nextjs project in that folder upon completion{" "}
-        </p>
-        {/* <h3 className="w-full border border-gray-300 my-5"></h3> */}
-        <Divider />
-        <div className="mt-3">
-          <h4 className="mb-3">Install Dependencies : </h4>
-          <div className="bg-[#080807c4] text-white px-3 py-3 rounded-sm mb-2.5">
-            <code
-              lang="shell code-1"
-              className={`${jetbrainsMono.variable} md:text-sm text-[11px]`}
-            >
-              cd passkey_build
-              <br />
-              npm install @lazorkit/wallet @solana/web3js @coral-xyz/anchor
-              @solana/spl-token
-            </code>
-          </div>
-          <h4>
-            Preferably if using Vscode or any of the recommended IDES, run
-            either
-          </h4>
-          <div className="mt-4">
-            <h5 className="mb-5">For Visual Studio Code :</h5>
-            <div className="bg-[#080807c4] text-white px-3 py-3 rounded-sm mb-2.5">
-              <code
-                lang="shell code-1"
-                className={`${jetbrainsMono.variable} md:text-sm text-[11px]`}
-              >
-                code passkey_build
-              </code>
-            </div>
-          </div>
-          <div className="mt-4">
-            <h5 className="mb-5">For Zed :</h5>
-            <div className="bg-[#080807c4] text-white px-3 py-3 rounded-sm mb-2.5">
-              <code
-                lang="shell code-1"
-                className={`${jetbrainsMono.variable} md:text-sm text-[11px]`}
-              >
-                zed passkey_build
-              </code>
-            </div>
-          </div>
-          <div className="mt-4">
-            <h5 className="mb-5">For Cursor :</h5>
-            <div className="bg-[#080807c4] text-white px-3 py-3 rounded-sm mb-2.5">
-              <code
-                lang="shell code-1"
-                className={`${jetbrainsMono.variable} md:text-sm text-[11px]`}
-              >
-                cursor passkey_build
-              </code>
-            </div>
-          </div>
-          <p>This opens the folder in your preferred IDE</p>
-          <h3 className="w-full border border-gray-300 my-5"></h3>
-          <h6 className="text-2xl mb-2">Edit app/layout.tsx</h6>
-          <p className="mb-2.5">
-            Wrapping your app in the Lazorkit Provider is paramount to the apps
-            functionality simply replace the contents of your layout.tsx with
-            this
+        </Section>
+
+        {/* STEP 1 */}
+        <Section title="Step 1 — Create a New Next.js App">
+          <p className="text-gray-700 mb-3">
+            Open a terminal in your preferred directory and run:
           </p>
-          <div className="bg-[#080807c4] text-white px-3 py-3 rounded-sm mb-5">
-            <pre className={`${jetbrainsMono.variable} md:text-sm text-[11px]`}>
-              {`"use client";
+
+          <div className="bg-[#0d0d0d] text-white rounded-md p-4 overflow-x-auto mb-4">
+            <pre className={`text-sm ${jetbrainsMono.variable}`}>
+{`npx create-next-app@latest passkey_build`}
+            </pre>
+          </div>
+
+          <p className="text-gray-700">
+            This creates a fresh Next.js project configured for modern React.
+          </p>
+        </Section>
+
+        <Divider />
+
+        {/* STEP 2 */}
+        <Section title="Step 2 — Install Lazorkit & Solana Dependencies">
+          <div className="bg-[#0d0d0d] text-white rounded-md p-4 overflow-x-auto mb-4">
+            <pre className={`text-sm ${jetbrainsMono.variable}`}>
+{`cd passkey_build
+npm install @lazorkit/wallet @solana/web3.js @coral-xyz/anchor @solana/spl-token`}
+            </pre>
+          </div>
+
+          <Callout type="info">
+            Lazorkit handles wallet creation and signing. Solana libraries handle
+            chain interaction.
+          </Callout>
+        </Section>
+
+        <Divider />
+
+        {/* STEP 3 */}
+        <Section title="Step 3 — Wrap Your App with LazorkitProvider">
+          <p className="text-gray-700 mb-4">
+            Lazorkit must wrap your application to manage wallets and passkeys.
+            Replace the contents of <code>app/layout.tsx</code> with:
+          </p>
+
+          <div className="bg-[#0d0d0d] text-white rounded-md p-4 overflow-x-auto mb-4">
+            <pre className={`text-sm ${jetbrainsMono.variable}`}>
+{`"use client";
 
 import { LazorkitProvider } from "@lazorkit/wallet";
 
@@ -154,130 +147,194 @@ export const CONFIG = {
   RPC_URL: "https://api.devnet.solana.com",
   PORTAL_URL: "https://portal.lazor.sh",
   PAYMASTER: {
-    paymasterUrl: "https://kora.devnet.lazorkit.com"
-  }
+    paymasterUrl: "https://kora.devnet.lazorkit.com",
+  },
 };
 
 export default function RootLayout({
-    children,
+  children,
 }: {
-    children: React.ReactNode;
+  children: React.ReactNode;
 }) {
-    return (
-      <html lang="en">
-        <body className={\`\${geist.className} antialiased\`}>
-          <LazorkitProvider
-            rpcUrl={CONFIG.RPC_URL}
-            portalUrl={CONFIG.PORTAL_URL}
-            paymasterConfig={CONFIG.PAYMASTER}
-          >
-            {children}
-          </LazorkitProvider>
-        </body>
-      </html>
-    );
-}
-`}
+  return (
+    <html lang="en">
+      <body>
+        <LazorkitProvider
+          rpcUrl={CONFIG.RPC_URL}
+          portalUrl={CONFIG.PORTAL_URL}
+          paymasterConfig={CONFIG.PAYMASTER}
+        >
+          {children}
+        </LazorkitProvider>
+      </body>
+    </html>
+  );
+}`}
             </pre>
           </div>
-          <div>
-            <Divider />
-            <h6 className="text-2xl mb-2">
-              Adding Wallet Connection Functionality
-            </h6>
-            <p className="mb-3">
-              Connecting wallets in lazorkit is as simple as ever 🚀🚀🚀
-              <br />
-              You simply call the connect function from the useWallet() hook and
-              then poof you have a passkey-based wallet
-            </p>
-            <p className="mb-3 font-outfit">
-              Heres a starter component based on the functionality above, you
-              can create a component named "WalletConnect.tsx" and then call it
-              in your app/page.tsx
-            </p>
-            <div className="bg-[#080807c4] text-white px-3 py-3 rounded-sm mb-2.5">
-              <pre
-                className={`whitespace-pre overflow-hidden md:text-sm text-[11px] ${jetbrainsMono.variable} scroll-smooth`}
-              >
-                {`"use client";
+
+          <Callout type="warn">
+            Always use <strong>devnet</strong> while testing. Never deploy with
+            test RPCs in production.
+          </Callout>
+        </Section>
+
+        <Divider />
+
+        {/* STEP 4 */}
+        <Section title="Step 4 — Add Wallet Connection Logic">
+          <p className="text-gray-700 mb-3">
+            Connecting a wallet in Lazorkit is one function call.
+          </p>
+
+          <div className="bg-[#0d0d0d] text-white rounded-md p-4 overflow-x-auto mb-4">
+            <pre className={`text-sm ${jetbrainsMono.variable}`}>
+{`"use client";
 
 import { useWallet } from "@lazorkit/wallet";
-  
-export default function WalletConnect() {
-  const { connect, isConnected, isConnecting, wallet, disconnect } = useWallet();
 
-  if (isConnected && wallet){
-    return(
-      <div className="min-h-screen flex items-center justify-center w-full">
-        <button className="px-6 py-2 rounded-lg bg-slate-800 text-slate-100 cursor-pointer shadow-lg hover:bg-slate-700 transition-colors duration-200 font-medium text-lg" onClick={() => disconnect()}>
+export default function WalletConnect() {
+  const { connect, disconnect, isConnected, isConnecting, wallet } = useWallet();
+
+  if (isConnected && wallet) {
+    return (
+      <div className="flex justify-center mt-20">
+        <button
+          onClick={disconnect}
+          className="px-6 py-2 bg-black text-white rounded-md"
+        >
           Disconnect
         </button>
       </div>
-    )
-  }
-  else{
-    return (
-      <div className="min-h-screen flex items-center justify-center w-full">
-        <button
-          className="px-6 py-2 rounded-lg bg-slate-800 text-slate-100 cursor-pointer shadow-lg hover:bg-slate-700 transition-colors duration-200 font-medium text-lg"
-          onClick={() => connect()}
-        >
-          {isConnecting ? "Connecting..." : "Connect Wallet"}
-        </button>
-      </div>
     );
   }
-}
-`}
-              </pre>
-            </div>
-            <p className="mb-2">
-              For simplicity's sake you can view your newly created wallet
-              address by simply calling the "smartWalletPubkey" from the
-              useWallet() hook <br className="mt-1" />
-            </p>
-            <p className="mb-2">
-              Example Component:
-            </p>
-            <div className="bg-[#080807c4] text-white px-3 py-3 rounded-sm mb-2.5">
-              <pre
-                className={`whitespace-pre overflow-hidden wrap-break-word md:text-sm text-[11px] ${jetbrainsMono.variable}`}
+
+  return (
+    <div className="flex justify-center mt-20">
+      <button
+        onClick={connect}
+        className="px-6 py-2 bg-black text-white rounded-md"
+      >
+        {isConnecting ? "Connecting..." : "Connect Wallet"}
+      </button>
+    </div>
+  );
+}`}
+            </pre>
+          </div>
+
+          <Callout type="success">
+            Once connected, a passkey-secured wallet is created automatically.
+          </Callout>
+        </Section>
+
+        <Divider />
+
+        {/* STEP 5 */}
+        <Section title="Step 5 — Access the Wallet Address">
+          <p className="text-gray-700 mb-3">
+            You can access the wallet’s public key via
+            <code className="bg-gray-100 px-1 mx-1 font-mono">
+              smartWalletPubkey
+            </code>.
+          </p>
+
+          <div className="bg-[#0d0d0d] text-white rounded-md p-4 overflow-x-auto mb-4">
+            <pre className={`text-sm ${jetbrainsMono.variable}`}>
+{`import { useWallet } from "@lazorkit/wallet";
+
+export default function AddressButton() {
+  const { smartWalletPubkey } = useWallet();
+
+  const copy = () => {
+    navigator.clipboard.writeText(
+      smartWalletPubkey?.toString() || ""
+    );
+    alert("Address copied");
+  };
+
+  return (
+    <span
+      onClick={copy}
+      className="font-mono text-sm cursor-pointer border px-3 py-2"
+    >
+      {smartWalletPubkey?.toString()}
+    </span>
+  );
+}`}
+            </pre>
+          </div>
+        </Section>
+
+        <Callout type="info">
+          Fund your wallet using the{" "}
+          <a
+            href="https://faucet.solana.com"
+            target="_blank"
+            className="underline"
+          >
+            Solana Faucet
+          </a>{" "}
+          or{" "}
+          <a
+            href="https://faucet.circle.com"
+            target="_blank"
+            className="underline"
+          >
+            Circle Faucet
+          </a>
+          .
+        </Callout>
+
+        {/* NEXT */}
+        <Section title="Next Steps">
+          <p className="text-gray-700">
+            You’re ready to send transactions using this wallet.
+          </p>
+
+          <a
+            href="/guides/triggering-gasless-txns"
+            target="_blank"
+            className="text-blue-700 underline font-medium"
+          >
+            Triggering Gasless Transactions →
+          </a>
+        </Section>
+
+        <Divider />
+
+        {/* REFERENCES */}
+        <Section title="References">
+          <ul className="space-y-1">
+            <li>
+              <a
+                href="https://docs.lazorkit.com"
+                target="_blank"
+                className="underline"
               >
-                {`
-import { useWallet } from "@lazorkit/wallet";
-
-// For simplicitys sake , clicking on this header copies the address to the clipboard
-export default function AddressButton(){
-  const { smartWalletPubkey } = useWallet();
-  const fullAddress = smartWalletPubkey?.toString() as string;
-
-  function copyAddressToClipboard(){
-    navigator.clipboard.writeText(fullAddress)
-    alert("Address Copied To Clipboard")
-  }
-  
-    return(
-		 <span className="text-sm font-mono text-gray-900 border border-0.88 cursor-pointer px-3 py-2" onClick={copyAddressToClipboard}>{smartWalletPubkey?.toString()}</span>
-    )
-}
-              `}
-              </pre>
-            </div>
-            <p className="mb-2.5">And there u have it you can now create a passkey-based wallet
-              we can now use this wallet to make transactions</p>
-              <p className="mb-2.5">To fund your newly created wallet . <br/>Visit <a href="https://faucet.solana.com" target="_blank" className="underline">Solana Faucet</a> and <a target="_blank" href="https://faucet.circle.com"className="underline">Circle Faucet</a> for SOL and USDC repectively</p>
-            <p>We can now move to <a href="/guides/triggering-gasless-txns" className="text-blue-700" target="_blank">Triggering Gasless Transactions sponsored by Kora</a></p>
-          </div>
-          <Divider/>
-          <div className="mt-3">
-            <h1 className="text-xl mb-1.5">References</h1>
-            <ul className="space-y-1">
-              <li><a href="https://docs.lazorkit.com/" target="_blank">Lazorkit Docs</a></li>
-              <li><a href="">Nextjs Documentation</a></li>
-            </ul>
-          </div>
-        </div>
+                Lazorkit Docs
+              </a>
+            </li>
+            <li>
+              <a
+                href="https://launch.solana.com/products/kora"
+                target="_blank"
+                className="underline"
+              >
+                Kora
+              </a>
+            </li>
+            <li>
+              <a
+                href="https://nextjs.org/docs"
+                target="_blank"
+                className="underline"
+              >
+                Next.js Docs
+              </a>
+            </li>
+          </ul>
+        </Section>
       </div>
     </div>
   );

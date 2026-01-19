@@ -185,7 +185,7 @@ export default function Raydium() {
                 >
                     ← Back to dashboard
                 </a>
-                <div className="mt-7 space-y-1">
+                <div className="mt-7 mb-2.5">
                     <h3 className="text-2xl">Gasless Swaps powered by <span className="text-purple-600">Lazorkit</span> X <span className="text-blue-600">Raydium</span></h3>
                     <Divider />
                     <div className="flex flex-col md:flex-row md:space-x-8 space-y-4 md:space-y-0">
@@ -276,7 +276,18 @@ export default function Raydium() {
                             </button>
                         </form>
                     </div>
+                    <div className="mt-6 px-4 py-3 border border-gray-300 rounded-sm space-y-3">
+                        <h1>This example Shows how swaps on Raydium (Devnet) can be done with Lazorkit Smart Wallets</h1>
+                        <p>In the box to the right , select your preffered token , set an amount and swap on Raydium</p>
+                        <p>Do not Raydium has several issues with devnet swapping</p>
+                        <Divider />
+                        <h2 className="text-xl">References</h2>
+                        <ul>
+                            <li><a href="" target="_blank">Raydium Trade API Docs</a></li>
+                        </ul>
+                    </div>
                 </div>
+                <div className=""></div>
             </div>
         </div>
     )

@@ -18,12 +18,12 @@ function BurnerBalance({ publicKey }: { publicKey: string }) {
         publicKey ? new PublicKey(publicKey) : null
     );
 
-    // Fetch on mount
-    // useEffect(() => {
-    //     if (publicKey) {
-    //         fetchBalances();
-    //     }
-    // }, [publicKey]);
+
+    useEffect(() => {
+        if (publicKey) {
+            fetchBalances();
+        }
+    }, [publicKey]);
 
     return (
         <span className="text-xl font-mono flex" onClick={fetchBalances} style={{ cursor: "pointer" }}>
@@ -253,7 +253,7 @@ export default function BurnerWalletPage() {
                                             type="number"
                                             step="0.0001"
                                             min="0" onChange={(e) => setAmount(e.target.value)} />
-                                        <button className="mt-2.5 cursor-pointer flex-1 border border-gray-300 font-semibold rounded px-3 py-2 text-sm hover:bg-green-100 transition" onClick={() => { finalizeSweep() }}>
+                                        <button className="mt-2.5 cursor-pointer flex-1 border border-gray-300 font-semibold rounded px-3 py-2 text-sm hover:bg-black hover:text-[#ffffff] transition" onClick={() => { finalizeSweep() }}>
                                             {sendingTransaction ? "..." : "Send"}
                                         </button>
                                     </div> : ""}
