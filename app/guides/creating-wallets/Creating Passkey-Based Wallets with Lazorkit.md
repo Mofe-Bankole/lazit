@@ -168,4 +168,4 @@ export default function AddressButton(){
 And there u have it you can now create a **passkey-based wallet**
 we can now use this wallet to make transactions 
 
-We can now move to [[Triggering Gasless Transactions Via Lazorkit]]
+We can now move to Triggering Gasless Transactions Via Lazorkit

@@ -276,10 +276,42 @@ export default function Raydium() {
                             </button>
                         </form>
                     </div>
-                    <div className="mt-6 px-4 py-3 border border-gray-300 rounded-sm space-y-3">
+                    <div className="mt-6 px-4 py-3 border border-gray-300 rounded-sm space-y-1.5">
                         <h1>This example Shows how swaps on Raydium (Devnet) can be done with Lazorkit Smart Wallets</h1>
                         <p>In the box to the right , select your preffered token , set an amount and swap on Raydium</p>
-                        <p>Do not Raydium has several issues with devnet swapping</p>
+                        <p>If you encounter persistent errors, try both swap directions and double check network connectivity.</p>
+                        <Divider/>
+                        <div>
+
+                            <h6 className="mb-1.5 text-blue-700">Under the Hood:</h6>
+                            <ul className="space-y-0.5">
+                                <li>The app uses Raydium's Trade API to fetch price quotes and build swap transactions.</li>
+                                <li>Transactions are filtered to remove superfluous ComputeBudget instructions, which are managed by Lazorkit internally.</li>
+                                <li>Signing and sending is handled by your Lazorkit smart wallet; simply approve in the browser window when prompted.</li>
+                            </ul>
+                        </div>
+                        {/* 
+                        --- Swapping on Raydium Devnet with Lazorkit ---
+
+                        This example demonstrates how you can perform token swaps on Raydium (Devnet) using a Lazorkit passkey-based smart wallet.
+
+                        📝 **Notes and Tips:**
+                        - You can swap between SOL and USDC using the simple UI above.
+                        - Swapping on Raydium Devnet can be unreliable and may fail for certain pairs. If your swap from SOL→USDC is not working, try swapping USDC→SOL.
+                        - All transaction gas is handled by Lazorkit, and you sign transactions securely using passkeys—no browser extensions needed!
+                        - Your wallet address can be found at the top of the page. Click to copy it at any time.
+                        - The "Amount in {swapToken}" field lets you specify how much to swap. The minimum/maximum allowed may depend on Raydium pools.
+                        - After entering an amount, the UI fetches a live quote and displays exactly how much output token you will receive.
+
+                        🛠️ **Under the Hood:**
+                        - The app uses Raydium's Trade API to fetch price quotes and build swap transactions.
+                        - Transactions are filtered to remove superfluous ComputeBudget instructions, which are managed by Lazorkit internally.
+                        - Signing and sending is handled by your Lazorkit smart wallet; simply approve in the browser window when prompted.
+
+                        🔁 If you encounter persistent errors, try both swap directions and double check network connectivity.
+
+                        For detailed developer instructions, see the reference guide below. 
+                        */}
                         <Divider />
                         <h2 className="text-xl">References</h2>
                         <ul>
