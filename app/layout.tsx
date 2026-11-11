@@ -33,7 +33,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={` ${outfit.variable}  ${outfit.className} antialiased`}
+        className={`${outfit.variable} ${jetbrainsMono.variable} ${outfit.className} antialiased`}
       >
         {/* /// Lazorkit Provider */}
         <LazorkitProvider rpcUrl={CONFIG.RPC_URL} portalUrl={CONFIG.PORTAL_URL} paymasterConfig={CONFIG.PAYMASTER}>
