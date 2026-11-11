@@ -2,15 +2,8 @@ import { useWallet } from "@lazorkit/wallet";
 import { BurnerTransferProps, BurnerTransaction } from "../../lib/types";
 import useBalance from "./useBalances";
 import { useCallback, useState } from "react";
-import {
-  LAMPORTS_PER_SOL,
-  SystemProgram,
-  Transaction as SolanaTransaction,
-  sendAndConfirmTransaction,
-  Keypair,
-  PublicKey
-} from "@solana/web3.js";
-import { createConnection } from "../../lib/solana";
+import axios from "axios";
+import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 
 export function useBurner(props: BurnerTransferProps) {
   const { SolBalance } = useBalance(
@@ -57,7 +50,6 @@ export function useBurner(props: BurnerTransferProps) {
         txStatus: "pending",
       }));
 
-      const connection = createConnection();
       const senderPubkey = props.sender;
       const recipientPubkey = new PublicKey(props.recipient as string);
       const lamports = parseFloat(props.amount as string) *LAMPORTS_PER_SOL;
@@ -71,19 +63,14 @@ export function useBurner(props: BurnerTransferProps) {
         return;
       }
 
-      const tx = new SolanaTransaction().add(
-        SystemProgram.transfer({
-          fromPubkey: senderPubkey,
-          toPubkey: recipientPubkey,
-          lamports,
-        })
-      );
-
-      const keypair = Keypair.fromSecretKey( Uint8Array.from(props.signingKey))
-
-      const signature = await sendAndConfirmTransaction(connection, tx, [
-        keypair
-      ]);
+      // The server holds the burner's key and signs the sweep
+      const res = await axios.post("/api/burners/sweep", {
+        publicKey: senderPubkey.toString(),
+        recipient: recipientPubkey.toString(),
+        amount: props.amount,
+      });
+      if (!res.data.success) throw new Error(res.data.error);
+      const signature: string = res.data.signature;
 
       const solscanurl = `https://solscan.io/tx/${signature}?cluster=devnet`;
       
@@ -96,15 +83,15 @@ export function useBurner(props: BurnerTransferProps) {
         signature,
         error : null
       })
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Theres an error : ${error}`);
       setBurner((prev) => ({
         ...prev,
-        error: `${error}`,
+        error: error?.response?.data?.error ?? `${error}`,
         txStatus: "error",
       }));
     }
-  }, [props.recipient , props.amount , props.sender , props.signingKey]);
+  }, [props.recipient , props.amount , props.sender , SolBalance]);
 
   return{
     recipient : burner.recipient,

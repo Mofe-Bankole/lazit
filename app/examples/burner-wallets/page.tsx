@@ -51,7 +51,6 @@ export default function BurnerWalletPage() {
     const [amount, setAmount] = useState("");
     const [recipient, setRecipient] = useState("");
     const [sender, setSender] = useState<PublicKey | null>(null);
-    const [currentSigner, setCurrentSigner] = useState<any>("null");
     const [sweepStatus, setSweepStatus] = useState<"idle" | "success" | "error" | "pending">("idle");
     const [url, setUrl] = useState("");
 
@@ -62,18 +61,16 @@ export default function BurnerWalletPage() {
         setRecipient("");
         setAmount("");
         setSendingTransaction(false)
-        setCurrentSigner("")
     }
     
-    function handleSweep(sender: PublicKey, secretKey: any) {
+    function handleSweep(sender: PublicKey) {
         if (!sender) return;
         setSending(true)
-        setCurrentSigner(secretKey),
         setSender(sender);
         console.log("Money was swept")
     }
 
-    const { explorerURL, status, handleBurnerSweep , error } = useBurner({ recipient, sender, amount, signingKey: currentSigner });
+    const { explorerURL, status, handleBurnerSweep , error } = useBurner({ recipient, sender, amount });
 
     function finalizeSweep() {
         setSendingTransaction(true)
@@ -89,10 +86,11 @@ export default function BurnerWalletPage() {
     }
 
     async function fetchUsersBurners() {
+        if (!smartWalletPubkey) { setLoading(false); return; }
         setLoading(true);
         setSending(false)
         try {
-            const res = await axios.get("/api/burners");
+            const res = await axios.get(`/api/burners?owner=${smartWalletPubkey.toString()}`);
             if (res.data.success) {
                 setWallets(res.data.wallets || []);
             } else {
@@ -108,7 +106,7 @@ export default function BurnerWalletPage() {
 
     useEffect(() => {
         fetchUsersBurners();
-    }, []);
+    }, [smartWalletPubkey]);
 
     function toggleModal() {
         setIsModalOpen(true);
@@ -222,7 +220,7 @@ export default function BurnerWalletPage() {
                                     </div>
 
                                     <div className="mt-4 flex flex-col sm:flex-row gap-2 mb-2.5">
-                                        {sending && sender?.toString() == wallet.publicKey ? "" : <button className="cursor-pointer flex-1 border border-gray-300 font-semibold rounded px-3 py-2 text-sm hover:bg-green-100 transition" onClick={() => { handleSweep(new PublicKey(wallet.publicKey), wallet.secretKey) }}>
+                                        {sending && sender?.toString() == wallet.publicKey ? "" : <button className="cursor-pointer flex-1 border border-gray-300 font-semibold rounded px-3 py-2 text-sm hover:bg-green-100 transition" onClick={() => { handleSweep(new PublicKey(wallet.publicKey)) }}>
                                             Send
                                         </button>}
                                         <button

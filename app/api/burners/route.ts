@@ -3,13 +3,15 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { db } from "../../../lib/db";
 import { BurnerWalletProps } from "../../../lib/types";
-import { createBurnerWallet } from "../../../lib/burner";
+import { createBurnerWallet, toPublicBurner } from "../../../lib/burner";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const wallets = db.getAllBurnerWallets();
-    // Don't send secretKeys to client for security
-    // const safeWallets = wallets.map(({ secretKey, ...wallet }) => wallet);
+    // Only return the caller's burners, and never their secret keys
+    const owner = request.nextUrl.searchParams.get("owner");
+    const wallets = owner
+      ? db.getAllBurnerWallets().filter((w) => w.owner === owner).map(toPublicBurner)
+      : [];
     return NextResponse.json(
       { success: true, wallets, timestamp: Date.now() },
       { status: 200 }
@@ -41,7 +43,7 @@ export async function POST(request: NextRequest) {
   
     
     return NextResponse.json(
-      { success: true, wallet: wallet, timestamp: Date.now() },
+      { success: true, wallet: toPublicBurner(wallet), timestamp: Date.now() },
       { status: 201 }
     );
   } catch (error) {

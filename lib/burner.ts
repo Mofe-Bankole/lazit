@@ -38,3 +38,8 @@ export function deleteBurnerWallet(wallet: BurnerWallet) {
   db.deleteBurnerWallet(wallet.publicKey);
   alert("Wallet Removed Sucessfully");
 }
+
+// Strip the secret key before a burner wallet is sent to the client
+export function toPublicBurner({ secretKey: _secretKey, ...wallet }: BurnerWallet) {
+  return wallet;
+}
