@@ -1,78 +1,37 @@
 "use client";
 
-import Divider from "../../../components/Divider";
-import WalletHeader from "../../../components/WalletHeader";
-import { JetBrains_Mono } from "next/font/google";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
+import { AppShell, Callout, CodeBlock, GuideSection as Section } from "../../../components/ui";
 
-const jetbrainsMono = JetBrains_Mono({
-  weight: ["400", "500", "600"],
-  subsets: ["latin"],
-  variable: "--font-jetbrains-mono",
-});
-
-/* --------------------------------- */
-/* UI HELPERS                         */
-/* --------------------------------- */
-
-const Section = ({ title, children }: any) => (
-  <section className="mb-12">
-    <h3 className="text-2xl font-medium mb-3">{title}</h3>
-    {children}
-  </section>
-);
-
-const Callout = ({ type = "info", children }: any) => {
-  const styles : any = {
-    info: "border-blue-500 bg-blue-50 text-blue-900",
-    warn: "border-yellow-500 bg-yellow-50 text-yellow-900",
-    success: "border-green-500 bg-green-50 text-green-900",
-  };
-
-  return (
-    <div className={`border-l-4 p-4 my-6 text-sm ${styles[type]}`}>
-      {children}
-    </div>
-  );
-};
-
-/* --------------------------------- */
-/* PAGE                               */
 /* --------------------------------- */
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-white text-black">
-      <WalletHeader />
-
-      <div className="max-w-4xl mx-auto px-4 py-10">
-        {/* BACK */}
-        <a
-          href="/dashboard"
-          className="text-purple-600 underline text-sm mb-3 inline-block"
-        >
-          ← Back to Dashboard
-        </a>
+    <AppShell width="max-w-3xl">
+        <Link href="/guides" className="mb-6 inline-flex items-center gap-1.5 text-sm text-zinc-400 transition hover:text-white">
+          <ArrowLeft className="h-4 w-4" /> Guides
+        </Link>
+        <p className="text-xs font-medium uppercase tracking-[0.2em] text-[#A08BFF]">Guide</p>
 
         {/* TITLE */}
-        <h1 className="md:text-3xl text-[22px] font-semibold mb-4">
+        <h1 className="mt-2 mb-6 text-3xl font-semibold tracking-tight sm:text-4xl">
           Gasless Transactions with{" "}
-          <span className="text-purple-600">Lazorkit</span>
+          <span className="text-[#A08BFF]">Lazorkit</span>
         </h1>
 
         {/* INTRO */}
-        <p className="text-gray-700 mb-4">
+        <p className="text-zinc-400 mb-4">
           This guide shows how to send SOL on Solana{" "}
           <strong>without the user paying gas</strong> using Lazorkit’s
           passkey-based wallets.
         </p>
 
-        <p className="text-gray-700 mb-6">
+        <p className="text-zinc-400 mb-6">
           We’ll create a transaction, sign it with{" "}
-          <code className="bg-gray-100 px-1 font-mono">useWallet()</code>, and let
+          <code className="rounded bg-white/10 text-zinc-200 px-1 font-mono">useWallet()</code>, and let
           Lazorkit + Kora handle the fees.
         </p>
-
-        <Divider />
 
         {/* PREREQ */}
         <Callout type="info">
@@ -80,7 +39,7 @@ export default function Home() {
           <a
             href="/guides/creating-wallets"
             target="_blank"
-            className="underline font-medium"
+            className="font-medium text-[#A08BFF] underline hover:text-white"
           >
             Creating Passkey-Based Wallets with Lazorkit
           </a>
@@ -89,16 +48,16 @@ export default function Home() {
 
         {/* STEP 1 */}
         <Section title="Step 1 — How Gasless Transactions Work">
-          <p className="text-gray-700 mb-3">
+          <p className="text-zinc-400 mb-3">
             Lazorkit exposes a{" "}
-            <code className="font-mono bg-gray-100 px-1">
+            <code className="font-mono rounded bg-white/10 text-zinc-200 px-1">
               signAndSendTransaction
             </code>{" "}
             method via the{" "}
-            <code className="font-mono bg-gray-100 px-1">useWallet()</code> hook.
+            <code className="font-mono rounded bg-white/10 text-zinc-200 px-1">useWallet()</code> hook.
           </p>
 
-          <ul className="list-disc pl-6 text-gray-700 space-y-1">
+          <ul className="list-disc pl-6 text-zinc-400 space-y-1">
             <li>Builds the transaction</li>
             <li>Signs it using passkeys</li>
             <li>Uses Kora as the gas paymaster</li>
@@ -112,14 +71,12 @@ export default function Home() {
 
         {/* STEP 2 */}
         <Section title="Step 2 — Create the Transaction Handler">
-          <p className="text-gray-700 mb-4">
+          <p className="text-zinc-400 mb-4">
             In your page or component file, create a function that builds and
             sends the transaction.
           </p>
 
-          <div className="bg-[#0d0d0d] text-white rounded-md p-4 overflow-x-auto mb-4">
-            <pre className={`text-sm ${jetbrainsMono.variable}`}>
-{`import { useWallet } from "@lazorkit/wallet";
+          <CodeBlock>{`import { useWallet } from "@lazorkit/wallet";
 import { PublicKey, SystemProgram, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { useState } from "react";
 
@@ -167,20 +124,16 @@ export function useGaslessTransfer() {
   };
 
   return { sendSol, status, isSigning, isConnected };
-}`}
-            </pre>
-          </div>
+}`}</CodeBlock>
         </Section>
 
         {/* STEP 3 */}
         <Section title="Step 3 — Build the Transfer UI">
-          <p className="text-gray-700 mb-4">
+          <p className="text-zinc-400 mb-4">
             Attach the handler to a simple form so users can send SOL.
           </p>
 
-          <div className="bg-[#0d0d0d] text-white rounded-md p-4 overflow-x-auto mb-4">
-            <pre className={`text-sm ${jetbrainsMono.variable}`}>
-{`import { useState } from "react";
+          <CodeBlock>{`import { useState } from "react";
 import { useGaslessTransfer } from "./useGaslessTransfer";
 
 export default function TransferForm() {
@@ -222,9 +175,7 @@ export default function TransferForm() {
       )}
     </div>
   );
-}`}
-            </pre>
-          </div>
+}`}</CodeBlock>
         </Section>
 
         {/* MISTAKES */}
@@ -239,7 +190,7 @@ export default function TransferForm() {
 
         {/* WRAP UP */}
         <Section title="What You Just Built">
-          <ul className="list-disc pl-6 text-gray-700 space-y-1">
+          <ul className="list-disc pl-6 text-zinc-400 space-y-1">
             <li>Gasless SOL transfers</li>
             <li>Passkey-based signing</li>
             <li>No wallet extensions required</li>
@@ -250,7 +201,6 @@ export default function TransferForm() {
             You now have a production-ready gasless transaction flow.
           </Callout>
         </Section>
-      </div>
-    </div>
+      </AppShell>
   );
 }

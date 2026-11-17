@@ -6,11 +6,11 @@ Developers at Raydium are working on this and trying their best to iron it out.
 
 **Prerequisites**
 
-Nodejs v20 or later
-Visual Studio Code, Zed, Cursor or any IDE of your choice
-Chrome Browser (Recommended)
-Basic Knowledge of Raydium
-Devnet SOL and USDC (visit faucet.solana.com and faucet.circle.com respectively)
+- Nodejs v20 or later
+- Visual Studio Code, Zed, Cursor or any IDE of your choice
+- Chrome Browser (Recommended)
+- Basic Knowledge of Raydium
+- Devnet SOL and USDC (visit faucet.solana.com and faucet.circle.com respectively)
 
 
 ```
@@ -97,112 +97,115 @@ import useBalance from "@/hooks/useBalances";
 ###### 5.Compute the Swap Amount
 
 ```ts
-  const compueOutputAmount = async () => {
-        // CHekcs some params
-        if (!smartWalletPubkey || isConnected == false || !inputAmount || parseFloat(inputAmount) <= 0) {
-            setError("Multiple Variables Unset")
-            setOutputAmount('')
-            return
-        }
-        
-        setError('')
+    const computeOutputAmount = async () => {
+        if (!inputAmount || parseFloat(inputAmount) <= 0) {
+            setOutputAmount('')
+            setQuote(null)
+            return
+        }
 
-        try {
-            const inputMint = TOKENS[swapToken].mint;
-            const outputMint = TOKENS[outputToken].mint;
-            const swapAmount = parseFloat(inputAmount) * Math.pow(10, TOKENS[swapToken].decimals);
-            const quoteResponse = await axios.get(
-                `${DEV_API_URLS.SWAP_HOST}/compute/swap-base-in?` +
-                `inputMint=${inputMint}&` +
-                `outputMint=${outputMint}&` +
-                `amount=${Math.floor(swapAmount)}&` +
-                `slippageBps=50&` +
-                `txVersion=LEGACY`
-            );
+        setError('')
+        setQuoting(true)
+        try {
+            const swapAmount = parseFloat(inputAmount) * Math.pow(10, TOKENS[swapToken].decimals);
+            const { data: quoteResponse } = await axios.get(
+                `${DEV_API_URLS.SWAP_HOST}/compute/swap-base-in?` +
+                `inputMint=${TOKENS[swapToken].mint}&` +
+                `outputMint=${TOKENS[outputToken].mint}&` +
+                `amount=${Math.floor(swapAmount)}&` +
+                `slippageBps=50&` +
+                `txVersion=LEGACY`
+            );
 
-			// Do this to view the response
-            console.log(quoteResponse.data)  
+            // Raydium wraps the quote as { success, data: { outputAmount, ... } }
+            if (!quoteResponse?.success) {
+                setQuote(null)
+                setOutputAmount('')
+                setError(quoteResponse?.msg || "Raydium couldn't quote this swap. Try the other direction.")
+                return;
+            }
 
-            if (!quoteResponse.data) {
-                setQuoteSuccess(false)
-                setError("Failed to Get Quote")
-                setQuote(null);
-                setSwapStatus("error")
-                return;
-            }
-
-            const rawOutputAmount = parseFloat(quoteResponse.data.outputAmount)
-            const formattedOutput = (rawOutputAmount / Math.pow(10, TOKENS[outputToken].decimals)).toFixed(6);
-            setOutputAmount(formattedOutput);
-        } catch (error) {
-            console.error(error)
-            setError(`${error}`)
-        }
-    }
+            const rawOutputAmount = parseFloat(quoteResponse.data.outputAmount)
+            setOutputAmount((rawOutputAmount / Math.pow(10, TOKENS[outputToken].decimals)).toFixed(6));
+            setQuote(quoteResponse);
+        } catch (error) {
+            console.error(error)
+            setQuote(null)
+            setError(`${error}`)
+        } finally {
+            setQuoting(false)
+        }
+    }
 ```
 
 ###### 6.Execute the Swap
 
+Raydium returns the quote as `{ success, data }`, so keep the whole response and pass it back as `swapResponse`. The smart wallet is a PDA, so derive its token accounts with `allowOwnerOffCurve` set to `true`.
+
+
 ```ts
- const executeSwap = async () => {
-        if (!quote || !quoteSuccess) {
-            setError("Error Fetching Quotes");
-            return;
-        }
+    const executeSwap = async () => {
+        if (!quote || !smartWalletPubkey) {
+            setError("Get a quote first");
+            return;
+        }
+        const walletKey = smartWalletPubkey;
 
-        if (!inputAmount) {
-            setError("Amount Not Set");
-            return
-        }
-        setSwapping(true);
-        setError("");
-        setSwapStatus("idle")
+        setSwapping(true);
+        setError("");
+        setSwapStatus("idle")
 
-        try {
-            const inputMint = TOKENS[swapToken as keyof typeof TOKENS].mint;
-            const outputMint = TOKENS[outputToken as keyof typeof TOKENS].mint;
-            // const swapAmount = parseFloat(inputAmount) * Math.pow(10, TOKENS[swapToken as keyof typeof TOKENS].decimals);
+        try {
+            const isInputSol = swapToken === "SOL";
+            const isOutputSol = outputToken === "SOL";
+            const owner = new Web3PublicKey(walletKey.toString());
+            // The smart wallet is a PDA, so its token accounts are derived with allowOwnerOffCurve
+            const ata = (mint: string) =>
+                getAssociatedTokenAddressSync(new Web3PublicKey(mint), owner, true).toBase58();
 
-            // fetch the swap from raydium
-            const { data: swapResponse } = await axios.get(`${DEV_API_URLS.SWAP_HOST}/compute/swap-base-in?...&txVersion=LEGACY`)
+            const { data: swapData } = await axios.post(`${DEV_API_URLS.SWAP_HOST}/transaction/swap-base-in`, {
+                computeUnitPriceMicroLamports: "0",
+                swapResponse: quote,
+                txVersion: "LEGACY",
+                wallet: walletKey.toString(),
+                wrapSol: isInputSol,
+                unwrapSol: isOutputSol,
+                inputAccount: isInputSol ? undefined : ata(TOKENS[swapToken].mint),
+                outputAccount: isOutputSol ? undefined : ata(TOKENS[outputToken].mint),
+            })
 
-            const { data: swapData } = await axios.post(`${DEV_API_URLS.SWAP_HOST}/transaction/swap-base-in`, {
-                swapResponse,
-                TxVersion: "LEGACY",
-                wallet: smartWalletPubkey?.toString(),
-                wrapSol: inputMint === TOKENS.SOL.mint,
-                unwrapSol: outputMint === TOKENS.SOL.mint,
-            })
+            if (!swapData?.success) throw new Error(swapData?.msg || "Raydium couldn't build the swap transaction");
 
-            const transactionBuffer = Buffer.from(swapData.data[0].transaction, 'base64');
-            const legacyTx = Transaction.from(transactionBuffer);
-	           
-	        
-            // got this fix from Codex on X
-            // LazorKit manages compute budget automatically so to remidiate this filter out ComputeBudget instructions from the transaction.
-            const COMPUTE_BUDGET_PROGRAM = new PublicKey('ComputeBudget111111111111111111111111111111');
-            const instructions = legacyTx.instructions.filter(
-                ix => !ix.programId.equals(COMPUTE_BUDGET_PROGRAM)
-            );
+            const legacyTx = Transaction.from(Buffer.from(swapData.data[0].transaction, 'base64'));
 
-            instructions.forEach((ix) => {
-                const hasSmartWallet = ix.keys.some(k => k.pubkey.toBase58() === smartWalletPubkey?.toString());
-                if (!hasSmartWallet) {
-                    ix.keys.push({ pubkey: smartWalletPubkey as PublicKey, isSigner: false, isWritable: false });
-                }
-            });
+            // Lazorkit manages the compute budget itself, so drop Raydium's ComputeBudget instructions
+            const instructions = legacyTx.instructions.filter(
+                ix => !ix.programId.equals(COMPUTE_BUDGET_PROGRAM)
+            );
 
+            instructions.forEach((ix) => {
+                const hasSmartWallet = ix.keys.some(k => k.pubkey.toBase58() === walletKey.toString());
+                if (!hasSmartWallet) {
+                    ix.keys.push({ pubkey: walletKey, isSigner: false, isWritable: false });
+                }
+            });
 
-            const signature = await signAndSendTransaction({
-                instructions,
-                transactionOptions: { computeUnitLimit: 600_000 }
-            });
-            console.log(signature)
-        } catch (error : any) {
-            console.error(error)
-            alert(`Swap Unsuccessful : ${error}`)
-        }
-    }
+            const signature = await signAndSendTransaction({
+                instructions,
+                transactionOptions: { computeUnitLimit: 600_000 }
+            });
+
+            setExplorerUrl(`https://solscan.io/tx/${signature}?cluster=devnet`);
+            setSwapStatus("success");
+            setInputAmount('');
+        } catch (error: any) {
+            console.error(error)
+            setError(error?.message ?? `${error}`)
+            setSwapStatus("error")
+        } finally {
+            setSwapping(false)
+        }
+    }
 ```
 
 ###### 7. Create a component for swapping that utilizes all the above functions

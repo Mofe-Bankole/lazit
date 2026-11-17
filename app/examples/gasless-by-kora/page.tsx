@@ -3,131 +3,147 @@ import useBalance from "@/hooks/useBalances";
 import useTransfer from "@/hooks/useTransfer";
 import { useWallet } from "@lazorkit/wallet";
 import { PublicKey } from "@solana/web3.js";
-import React from "react";
-import Divider from "../../../components/Divider";
-import WalletHeader from "../../../components/WalletHeader";
+import React, { useEffect } from "react";
+import Link from "next/link";
+import { RefreshCw, Wallet, Zap } from "lucide-react";
+import { AppShell, Button, Card, EmptyState, Field, PageHeader, TxResult } from "../../../components/ui";
+
+function SenderBalances({ pubkey }: { pubkey: PublicKey }) {
+  const { SolBalance, fetchBalances, UsdcBalance, loading } = useBalance(pubkey);
+
+  useEffect(() => {
+    fetchBalances();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pubkey.toString()]);
+
+  return (
+    <div className="mb-5 grid grid-cols-2 gap-3">
+      {[
+        ["SOL", SolBalance ? SolBalance.toFixed(4) : "0.0000"],
+        ["USDC", UsdcBalance ? UsdcBalance.toFixed(2) : "0.00"],
+      ].map(([label, value]) => (
+        <button
+          key={label}
+          onClick={fetchBalances}
+          className="cursor-pointer rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-left transition hover:border-white/20"
+        >
+          <span className="flex items-center justify-between text-xs text-zinc-500">
+            {label}
+            <RefreshCw className={`h-3 w-3 ${loading ? "animate-spin" : ""}`} />
+          </span>
+          <span className="mt-1 block font-mono text-lg">{value}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+const FLOW = [
+  ["You sign", "Your passkey approves the transfer. Your wallet is not the fee payer."],
+  ["Kora co-signs", "The paymaster (a Kora node) signs as fee payer and covers the SOL fee."],
+  ["Solana confirms", "The transfer lands on-chain. Your balance only drops by the amount sent."],
+];
 
 export default function GaslessTransfers() {
+  const { smartWalletPubkey, isConnected, isSigning, connect, isConnecting } = useWallet();
+  const [recipient, setRecipient] = React.useState<string>("");
+  const [amount, setAmount] = React.useState<string>("");
+  const sender = smartWalletPubkey ? smartWalletPubkey.toString() : "";
+  const { explorerUrl, status, error, handleTransactions } = useTransfer({ recipient, amount, sender });
 
-    const { smartWalletPubkey, isConnected
-        , isSigning
-    } = useWallet();
-    const { loading } = useBalance(isConnected ? smartWalletPubkey : null);
-    const [recipient, setRecipient] = React.useState<string>("");
-    const [amount, setAmount] = React.useState<string>("");
-    const sender = smartWalletPubkey ? smartWalletPubkey.toString() : "";
-    const { explorerUrl, status, error , handleTransactions } = useTransfer({ recipient, amount, sender });
+  return (
+    <AppShell>
+      <PageHeader
+        back={{ href: "/examples", label: "Examples" }}
+        eyebrow="Example · Kora"
+        title="Gasless transfers"
+        description="Send devnet SOL without paying the network fee. Lazorkit routes the transaction through Kora, which sponsors it."
+      />
 
-    function SenderBalances({ pubkey }: { pubkey: PublicKey }) {
-        const { SolBalance, fetchBalances, UsdcBalance } = useBalance(pubkey)
-
-        return (
-            <div className="flex flex-col mb-6 border border-gray-300 cursor-pointer p-3 rounded-sm" onClick={fetchBalances}>
-                <div className="flex justify-between mb-2.5">
-                    <h6>SOL</h6>
-                    <p>{SolBalance ? SolBalance.toFixed(4) : "0.0000"}</p>
+      <div className="grid gap-6 lg:grid-cols-5">
+        {/* Explainer */}
+        <div className="lg:col-span-2">
+          <ol className="space-y-5">
+            {FLOW.map(([title, body], i) => (
+              <li key={title} className="flex gap-4">
+                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#7857FF]/15 font-mono text-xs text-[#A08BFF]">
+                  {i + 1}
+                </span>
+                <div>
+                  <p className="font-medium">{title}</p>
+                  <p className="mt-1 text-sm leading-relaxed text-zinc-400">{body}</p>
                 </div>
-                <div className="flex justify-between">
-                    <h6>USDC</h6>
-                    <p>{UsdcBalance ? UsdcBalance.toFixed(2) : "0.00"}</p>
-                </div>
-            </div>
-        )
-    }
-
-    return (
-        <div className="min-h-screen bg-white text-black relative">
-            <WalletHeader />
-            <div className="max-w-5xl mx-auto px-4 py-8">
-                <div className="mb-4">
-                    <a
-                        href="/dashboard"
-                        className="text-sm text-purple-700 underline"
-                    >
-                        ← Back to dashboard
-                    </a>
-                </div>
-                <div className="text-normal">
-                    <p className="text-xl">So how exactly does Lazorkit trigger <span className="text-purple-500 contrast-75">Gasless Transactions ?</span></p>
-                    <Divider />
-                    <p className="mb-3">Thats all thanks to <a href="https://launch.solana.com/products/kora" className="text-[#483939f2]" target="_blank">Kora</a>. <br /><a href="https://launch.solana.com/products/kora" className="text-[#483939f2]" target="_blank">Kora</a> is a solana signing structure that handles gas fees without removing as much as a cent from users accounts</p>
-                    <p className="mb-3">Users can also pay fees in USDC, BONK or in your apps native token </p>
-                    <p className="mb-3">Kora sponsors transactions using a  'paymaster' which is simply a Kora Node</p>
-                    <p>As a developer / dApp Builder you can run your very own Kora Node/Paymster . Visit <a href="https://launch.solana.com/docs/kora">Kora Docs to find out how</a></p>
-                    <p className="mb-3">If you want to also learn how i built this exact page check out my guide @ <a href="/guides/triggering-gasless-txns" target="_blank">Triggering Gasless Transactions</a></p>
-                </div>
-
-                {isConnected ? <div className="border border-gray-300 p-6 mt-10 rounded-sm">
-                    <SenderBalances pubkey={smartWalletPubkey as PublicKey} />
-                    <div className="mb-6">
-                        <label
-                            className="block text-sm text-gray-700 mb-2"
-                            htmlFor="recipient"
-                        >
-                            Recipient Address
-                        </label>
-                        <input
-                            id="recipient"
-                            type="text"
-                            className="w-full px-3 py-2 border border-gray-300 text-sm font-mono focus:outline-none focus:border-black"
-                            placeholder="Enter Solana address"
-                            value={recipient}
-                            onChange={(e) => setRecipient(e.target.value)}
-                        />
-                    </div>
-
-                    <div className="mb-6">
-                        <label
-                            className="block text-sm text-gray-700 mb-2 text-right"
-                            htmlFor="amount"
-                        >
-                            Amount (SOL)
-                        </label>
-                        <input
-                            id="amount"
-                            type="number"
-                            step="0.0001"
-                            min="0"
-                            className="w-full px-3 py-2 border border-gray-300 text-sm focus:outline-none focus:border-black"
-                            placeholder="0.00"
-                            value={amount}
-                            onChange={(e) => setAmount(e.target.value)}
-                        />
-                    </div>
-
-                    <button
-                        className="w-full py-3 rounded-sm bg-black text-white text-sm font-medium hover:bg-gray-800 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed cursor-pointer"
-                        onClick={handleTransactions}
-                        disabled={!recipient || !amount || isSigning || loading || !smartWalletPubkey}
-                    >
-                        {isSigning ? "Sending..." : "Send"}
-                    </button>
-
-                    {status === "success" && (
-                        <div className="mt-5 text-sm sm:text-center text-green-600">
-                            <p>Transaction Successful!</p>
-                            {explorerUrl && (
-                                <a
-                                    href={explorerUrl}
-                                    className="cursor-pointer underline text-green-800 mt-2"
-                                    target="_blank" >
-                                    View Transaction
-
-                                </a>
-                            )}
-                        </div>
-                    )}
-                    {status === "error" && (
-                        <div className="mt-4 text-sm text-center text-red-600">
-                            {error || "Transaction failed"}
-                        </div>
-                    )}
-                </div> : <div className="border border-gray-300 text-center rounded-sm py-6 space-y-2 mt-3">
-                    <div className="w-1/3 mx-auto text-center"><p>❌ 404 ❌</p></div>
-                    <h1 className="">No Detected Wallet</h1>
-                    <h1>Please connect ur wallet</h1>
-                </div>}
-            </div>
+              </li>
+            ))}
+          </ol>
+          <div className="mt-8 space-y-2 border-t border-white/5 pt-6 text-sm text-zinc-400">
+            <p>
+              Fees can also be paid in USDC, BONK or your app&apos;s own token. You can run your own paymaster by following the{" "}
+              <a href="https://launch.solana.com/docs/kora" target="_blank" rel="noreferrer" className="text-[#A08BFF] underline hover:text-white">
+                Kora docs
+              </a>
+              .
+            </p>
+            <p>
+              Want to build this page yourself? Read{" "}
+              <Link href="/guides/triggering-gasless-txns" className="text-[#A08BFF] underline hover:text-white">
+                Triggering gasless transactions
+              </Link>
+              .
+            </p>
+          </div>
         </div>
-    )
+
+        {/* Form */}
+        <div className="lg:col-span-3">
+          {isConnected && smartWalletPubkey ? (
+            <Card>
+              <div className="mb-5 flex items-center justify-between">
+                <h2 className="flex items-center gap-2 font-medium">
+                  <Zap className="h-4 w-4 text-[#A08BFF]" /> Send without gas
+                </h2>
+                <span className="rounded-full bg-emerald-400/10 px-2 py-0.5 text-xs text-emerald-300">Fee: sponsored</span>
+              </div>
+              <SenderBalances pubkey={smartWalletPubkey as PublicKey} />
+              <div className="space-y-4">
+                <Field
+                  label="Recipient"
+                  placeholder="Solana address"
+                  className="[&_input]:font-mono"
+                  value={recipient}
+                  onChange={(e) => setRecipient(e.target.value)}
+                />
+                <Field
+                  label="Amount"
+                  hint="SOL"
+                  type="number"
+                  step="0.0001"
+                  min="0"
+                  placeholder="0.00"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                />
+                <Button
+                  className="w-full"
+                  onClick={handleTransactions}
+                  loading={isSigning || status === "pending"}
+                  disabled={!recipient || !amount}
+                >
+                  {isSigning || status === "pending" ? "Sending…" : "Send"}
+                </Button>
+              </div>
+              <TxResult status={status} url={explorerUrl} error={error} />
+            </Card>
+          ) : (
+            <EmptyState icon={<Wallet className="h-5 w-5" />} title="Connect your wallet to try it">
+              <p>You&apos;ll sign with your passkey. No extension or seed phrase needed.</p>
+              <Button className="mt-5" onClick={() => connect()} loading={isConnecting}>
+                Connect wallet
+              </Button>
+            </EmptyState>
+          )}
+        </div>
+      </div>
+    </AppShell>
+  );
 }

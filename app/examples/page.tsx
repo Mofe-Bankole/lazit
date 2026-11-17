@@ -1,21 +1,38 @@
-import WalletHeader from "../../components/WalletHeader";
+"use client";
+import { Flame, Repeat, Zap } from "lucide-react";
+import { AppShell, LinkCard, PageHeader } from "../../components/ui";
 
 export default function Examples() {
-    return (
-        <div className="min-h-screen bg-white text-black relative ">
-            <WalletHeader />
-
-            <div className="max-w-4xl mx-auto px-4 py-8">
-                <a href="/dashboard">Back</a>
-                <div className="mt-5 grid grid-cols-1 md:gap-2 gap-6">  
-                    <a className="cursor-pointer" href="/examples/burner-wallets">
-                        <div className="border border-gray-300 py-8 px-3.5 cursor-pointer relative flex mb-1.5 text-red-700">
-                            <h6>Burner Wallets</h6>
-                        </div>
-                    </a>
-                  
-                </div>
-            </div>
-        </div>
-    )
+  return (
+    <AppShell>
+      <PageHeader
+        eyebrow="Examples"
+        title="Live Lazorkit demos"
+        description="Each example runs on devnet with your passkey wallet. Fund it from the faucet on the dashboard first."
+      />
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <LinkCard
+          href="/examples/gasless-by-kora"
+          icon={<Zap className="h-4 w-4" />}
+          title="Gasless transfers"
+          body="Send SOL while Kora's paymaster covers the network fee."
+          tag="Kora"
+        />
+        <LinkCard
+          href="/examples/raydium-swaps"
+          icon={<Repeat className="h-4 w-4" />}
+          title="Raydium swaps"
+          body="Get a quote from Raydium's Trade API and sign the swap with a passkey."
+          tag="Raydium"
+        />
+        <LinkCard
+          href="/examples/burner-wallets"
+          icon={<Flame className="h-4 w-4" />}
+          title="Burner wallets"
+          body="Create short-lived wallets for one-off payments and sweep funds out of them."
+          tag="Burners"
+        />
+      </div>
+    </AppShell>
+  );
 }

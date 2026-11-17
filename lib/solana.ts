@@ -23,7 +23,7 @@ export async function getUsdcBalance(
   publicKey: PublicKey
 ): Promise<number> {
   try {
-    const tokenAccount = getAssociatedTokenAddressSync(USDC_MINT, publicKey);
+    const tokenAccount = getAssociatedTokenAddressSync(USDC_MINT, publicKey, true); // smart wallets are PDAs (off-curve)
     const accountInfo = await connection.getAccountInfo(tokenAccount);
 
     if (!accountInfo) {

@@ -1,71 +1,32 @@
 "use client";
 
-import Divider from "../../../components/Divider";
-import WalletHeader from "../../../components/WalletHeader";
-import { JetBrains_Mono } from "next/font/google";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
+import { AppShell, Callout, CodeBlock, GuideSection as Section } from "../../../components/ui";
 
-const jetbrainsMono = JetBrains_Mono({
-  weight: ["400", "500", "600"],
-  subsets: ["latin"],
-  variable: "--font-jetbrains-mono",
-});
-
-/* --------------------------------- */
-/* UI HELPERS                         */
-/* --------------------------------- */
-
-const Section = ({ title, children }: any) => (
-  <section className="mb-12">
-    <h3 className="text-2xl font-medium mb-3">{title}</h3>
-    {children}
-  </section>
-);
-
-const Callout = ({ type = "info", children }: any) => {
-  const styles : any = {
-    info: "border-blue-500 bg-blue-50 text-blue-900",
-    warn: "border-yellow-500 bg-yellow-50 text-yellow-900",
-    success: "border-green-500 bg-green-50 text-green-900",
-  };
-
-  return (
-    <div className={`border-l-4 p-4 my-6 text-sm ${styles[type]}`}>
-      {children}
-    </div>
-  );
-};
-
-/* --------------------------------- */
-/* PAGE                               */
 /* --------------------------------- */
 
 export default function CreatingPasskeyEnabledWallets() {
   return (
-    <div className="min-h-screen bg-white text-black">
-      <WalletHeader />
-
-      <div className="max-w-4xl mx-auto px-4 py-10">
-        {/* BACK */}
-        <a
-          href="/dashboard"
-          className="text-purple-600 underline text-sm mb-3 inline-block"
-        >
-          ← Back to dashboard
-        </a>
+    <AppShell width="max-w-3xl">
+        <Link href="/guides" className="mb-6 inline-flex items-center gap-1.5 text-sm text-zinc-400 transition hover:text-white">
+          <ArrowLeft className="h-4 w-4" /> Guides
+        </Link>
+        <p className="text-xs font-medium uppercase tracking-[0.2em] text-[#A08BFF]">Guide</p>
 
         {/* TITLE */}
-        <h1 className="md:text-3xl text-[22px] font-semibold mb-4">
+        <h1 className="mt-2 mb-6 text-3xl font-semibold tracking-tight sm:text-4xl">
           Creating Passkey-Based Wallets with{" "}
-          <span className="text-purple-600">Lazorkit</span>
+          <span className="text-[#A08BFF]">Lazorkit</span>
         </h1>
 
         {/* INTRO */}
-        <p className="text-gray-700 mb-4">
+        <p className="text-zinc-400 mb-4">
           Traditional wallets rely on seed phrases, browser extensions, and long
           onboarding flows. This is fragile, intimidating, and easy to mess up.
         </p>
 
-        <p className="text-gray-700 mb-6">
+        <p className="text-zinc-400 mb-6">
           Lazorkit lets you create <strong>passkey-enabled wallets</strong> —
           secured by the device itself and usable directly inside your app.
         </p>
@@ -74,16 +35,14 @@ export default function CreatingPasskeyEnabledWallets() {
           No extensions. No seed phrases. Just passkeys.
         </Callout>
 
-        <Divider />
-
         {/* PREREQUISITES */}
         <Section title="Prerequisites">
-          <ul className="list-disc pl-6 text-gray-700 space-y-1">
+          <ul className="list-disc pl-6 text-zinc-400 space-y-1">
             <li>
               <a
                 href="https://nodejs.org/en"
                 target="_blank"
-                className="underline"
+                className="text-[#A08BFF] underline hover:text-white"
               >
                 Node.js
               </a>{" "}
@@ -96,31 +55,21 @@ export default function CreatingPasskeyEnabledWallets() {
 
         {/* STEP 1 */}
         <Section title="Step 1 — Create a New Next.js App">
-          <p className="text-gray-700 mb-3">
+          <p className="text-zinc-400 mb-3">
             Open a terminal in your preferred directory and run:
           </p>
 
-          <div className="bg-[#0d0d0d] text-white rounded-md p-4 overflow-x-auto mb-4">
-            <pre className={`text-sm ${jetbrainsMono.variable}`}>
-{`npx create-next-app@latest passkey_build`}
-            </pre>
-          </div>
+          <CodeBlock>{`npx create-next-app@latest passkey_build`}</CodeBlock>
 
-          <p className="text-gray-700">
+          <p className="text-zinc-400">
             This creates a fresh Next.js project configured for modern React.
           </p>
         </Section>
 
-        <Divider />
-
         {/* STEP 2 */}
         <Section title="Step 2 — Install Lazorkit & Solana Dependencies">
-          <div className="bg-[#0d0d0d] text-white rounded-md p-4 overflow-x-auto mb-4">
-            <pre className={`text-sm ${jetbrainsMono.variable}`}>
-{`cd passkey_build
-npm install @lazorkit/wallet @solana/web3.js @coral-xyz/anchor @solana/spl-token`}
-            </pre>
-          </div>
+          <CodeBlock>{`cd passkey_build
+npm install @lazorkit/wallet @solana/web3.js @coral-xyz/anchor @solana/spl-token`}</CodeBlock>
 
           <Callout type="info">
             Lazorkit handles wallet creation and signing. Solana libraries handle
@@ -128,18 +77,14 @@ npm install @lazorkit/wallet @solana/web3.js @coral-xyz/anchor @solana/spl-token
           </Callout>
         </Section>
 
-        <Divider />
-
         {/* STEP 3 */}
         <Section title="Step 3 — Wrap Your App with LazorkitProvider">
-          <p className="text-gray-700 mb-4">
+          <p className="text-zinc-400 mb-4">
             Lazorkit must wrap your application to manage wallets and passkeys.
             Replace the contents of <code>app/layout.tsx</code> with:
           </p>
 
-          <div className="bg-[#0d0d0d] text-white rounded-md p-4 overflow-x-auto mb-4">
-            <pre className={`text-sm ${jetbrainsMono.variable}`}>
-{`"use client";
+          <CodeBlock>{`"use client";
 
 import { LazorkitProvider } from "@lazorkit/wallet";
 
@@ -169,9 +114,7 @@ export default function RootLayout({
       </body>
     </html>
   );
-}`}
-            </pre>
-          </div>
+}`}</CodeBlock>
 
           <Callout type="warn">
             Always use <strong>devnet</strong> while testing. Never deploy with
@@ -179,17 +122,13 @@ export default function RootLayout({
           </Callout>
         </Section>
 
-        <Divider />
-
         {/* STEP 4 */}
         <Section title="Step 4 — Add Wallet Connection Logic">
-          <p className="text-gray-700 mb-3">
+          <p className="text-zinc-400 mb-3">
             Connecting a wallet in Lazorkit is one function call.
           </p>
 
-          <div className="bg-[#0d0d0d] text-white rounded-md p-4 overflow-x-auto mb-4">
-            <pre className={`text-sm ${jetbrainsMono.variable}`}>
-{`"use client";
+          <CodeBlock>{`"use client";
 
 import { useWallet } from "@lazorkit/wallet";
 
@@ -219,29 +158,23 @@ export default function WalletConnect() {
       </button>
     </div>
   );
-}`}
-            </pre>
-          </div>
+}`}</CodeBlock>
 
           <Callout type="success">
             Once connected, a passkey-secured wallet is created automatically.
           </Callout>
         </Section>
 
-        <Divider />
-
         {/* STEP 5 */}
         <Section title="Step 5 — Access the Wallet Address">
-          <p className="text-gray-700 mb-3">
+          <p className="text-zinc-400 mb-3">
             You can access the wallet’s public key via
-            <code className="bg-gray-100 px-1 mx-1 font-mono">
+            <code className="rounded bg-white/10 text-zinc-200 px-1 mx-1 font-mono">
               smartWalletPubkey
             </code>.
           </p>
 
-          <div className="bg-[#0d0d0d] text-white rounded-md p-4 overflow-x-auto mb-4">
-            <pre className={`text-sm ${jetbrainsMono.variable}`}>
-{`import { useWallet } from "@lazorkit/wallet";
+          <CodeBlock>{`import { useWallet } from "@lazorkit/wallet";
 
 export default function AddressButton() {
   const { smartWalletPubkey } = useWallet();
@@ -261,9 +194,7 @@ export default function AddressButton() {
       {smartWalletPubkey?.toString()}
     </span>
   );
-}`}
-            </pre>
-          </div>
+}`}</CodeBlock>
         </Section>
 
         <Callout type="info">
@@ -271,7 +202,7 @@ export default function AddressButton() {
           <a
             href="https://faucet.solana.com"
             target="_blank"
-            className="underline"
+            className="text-[#A08BFF] underline hover:text-white"
           >
             Solana Faucet
           </a>{" "}
@@ -279,7 +210,7 @@ export default function AddressButton() {
           <a
             href="https://faucet.circle.com"
             target="_blank"
-            className="underline"
+            className="text-[#A08BFF] underline hover:text-white"
           >
             Circle Faucet
           </a>
@@ -288,20 +219,18 @@ export default function AddressButton() {
 
         {/* NEXT */}
         <Section title="Next Steps">
-          <p className="text-gray-700">
+          <p className="text-zinc-400">
             You’re ready to send transactions using this wallet.
           </p>
 
           <a
             href="/guides/triggering-gasless-txns"
             target="_blank"
-            className="text-blue-700 underline font-medium"
+            className="text-[#A08BFF] underline font-medium"
           >
             Triggering Gasless Transactions →
           </a>
         </Section>
-
-        <Divider />
 
         {/* REFERENCES */}
         <Section title="References">
@@ -310,7 +239,7 @@ export default function AddressButton() {
               <a
                 href="https://docs.lazorkit.com"
                 target="_blank"
-                className="underline"
+                className="text-[#A08BFF] underline hover:text-white"
               >
                 Lazorkit Docs
               </a>
@@ -319,7 +248,7 @@ export default function AddressButton() {
               <a
                 href="https://launch.solana.com/products/kora"
                 target="_blank"
-                className="underline"
+                className="text-[#A08BFF] underline hover:text-white"
               >
                 Kora
               </a>
@@ -328,14 +257,13 @@ export default function AddressButton() {
               <a
                 href="https://nextjs.org/docs"
                 target="_blank"
-                className="underline"
+                className="text-[#A08BFF] underline hover:text-white"
               >
                 Next.js Docs
               </a>
             </li>
           </ul>
         </Section>
-      </div>
-    </div>
+      </AppShell>
   );
 }

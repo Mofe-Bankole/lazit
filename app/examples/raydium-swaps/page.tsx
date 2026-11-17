@@ -1,12 +1,14 @@
 "use client"
-import Divider from "../../../components/Divider"
 import { DEV_API_URLS } from '@raydium-io/raydium-sdk-v2';
-import WalletHeader from "../../../components/WalletHeader"
-import { Connection, PublicKey, Transaction, useWallet } from "@lazorkit/wallet"
+import { PublicKey, Transaction, useWallet } from "@lazorkit/wallet"
+import { PublicKey as Web3PublicKey } from "@solana/web3.js";
+import { getAssociatedTokenAddressSync } from "@solana/spl-token";
 import React, { useEffect, useState } from "react"
+import Link from "next/link";
 import axios from "axios";
+import { ArrowDownUp, RefreshCw, TriangleAlert, Wallet } from "lucide-react";
 import useBalance from "@/hooks/useBalances";
-
+import { AppShell, Button, Card, EmptyState, PageHeader, TxResult } from "../../../components/ui";
 
 const TOKENS = {
     SOL: {
@@ -22,144 +24,162 @@ const TOKENS = {
         decimals: 6,
     },
 };
+type Token = keyof typeof TOKENS;
 
+const COMPUTE_BUDGET_PROGRAM = new PublicKey('ComputeBudget111111111111111111111111111111');
+
+function SwapBalances({ pubkey }: { pubkey: PublicKey }) {
+    const { SolBalance, fetchBalances, UsdcBalance, loading } = useBalance(pubkey)
+
+    useEffect(() => {
+        fetchBalances()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [pubkey.toString()])
+
+    return (
+        <button
+            onClick={fetchBalances}
+            className="mb-4 flex w-full cursor-pointer items-center justify-between rounded-lg bg-black/30 px-3 py-2 text-xs text-zinc-400 transition hover:text-white"
+        >
+            <span>
+                Balance: <span className="font-mono text-zinc-200">{SolBalance ? SolBalance.toFixed(4) : "0.0000"}</span> SOL ·{" "}
+                <span className="font-mono text-zinc-200">{UsdcBalance ? UsdcBalance.toFixed(2) : "0.00"}</span> USDC
+            </span>
+            <RefreshCw className={`h-3 w-3 ${loading ? "animate-spin" : ""}`} />
+        </button>
+    )
+}
+
+function TokenBox({ label, token, children }: { label: string; token: Token; children: React.ReactNode }) {
+    return (
+        <div className="rounded-xl border border-white/10 bg-black/30 p-4">
+            <p className="text-xs text-zinc-500">{label}</p>
+            <div className="mt-2 flex items-center justify-between gap-3">
+                <div className="min-w-0 flex-1">{children}</div>
+                <span className="flex shrink-0 items-center gap-2 rounded-full border border-white/10 bg-white/5 py-1 pl-1 pr-3 text-sm font-medium">
+                    <span className={`grid h-6 w-6 place-items-center rounded-full text-[10px] font-bold ${token === "SOL" ? "bg-gradient-to-br from-[#9945FF] to-[#14F195] text-black" : "bg-[#2775CA] text-white"}`}>
+                        {token === "SOL" ? "◎" : "$"}
+                    </span>
+                    {token}
+                </span>
+            </div>
+        </div>
+    )
+}
 
 export default function Raydium() {
-    const { smartWalletPubkey, isConnected, signAndSendTransaction
-    } = useWallet()
+    const { smartWalletPubkey, isConnected, signAndSendTransaction, connect, isConnecting } = useWallet()
     const [swapping, setSwapping] = useState(false);
-    const [swapToken, setSwapToken] = useState<"SOL" | "USDC">("SOL");
-    const [outputToken, setOutputToken] = useState<"SOL" | "USDC">("USDC");
+    const [quoting, setQuoting] = useState(false);
+    const [swapToken, setSwapToken] = useState<Token>("SOL");
+    const outputToken: Token = swapToken === "SOL" ? "USDC" : "SOL";
     const [inputAmount, setInputAmount] = React.useState('');
     const [outputAmount, setOutputAmount] = useState('');
-    const [quoteSuccess, setQuoteSuccess] = useState(false)
     const [error, setError] = useState("");
     const [quote, setQuote] = useState<any>(null)
     const [swapStatus, setSwapStatus] = useState<"idle" | "success" | "error">("idle");
+    const [explorerUrl, setExplorerUrl] = useState<string | null>(null);
 
-    function setSOL() {
-        setSwapToken("SOL")
-        setOutputToken("USDC")
+    function flip() {
+        setSwapToken(outputToken);
         setInputAmount('');
         setOutputAmount('');
-        setError('')
-    }
-    function setUSDC() {
-        setSwapToken("USDC");
-        setOutputToken("SOL");
-        setInputAmount('');
-        setOutputAmount('');
-        setError('')
+        setQuote(null);
+        setError('');
+        setSwapStatus("idle");
     }
 
-    function SwapBalances({ pubkey }: { pubkey: PublicKey }) {
-        const { SolBalance, fetchBalances, UsdcBalance } = useBalance(pubkey)
-
-        useEffect(() => {
-            fetchBalances()
-        }, [])
-        return (
-            <div className="flex flex-col mb-6 border border-gray-300 cursor-pointer p-3 rounded-sm" onClick={fetchBalances}>
-                <div className="flex justify-between mb-2.5">
-                    <h6>SOL</h6>
-                    <p>{SolBalance ? SolBalance.toFixed(4) : "0.0000"}</p>
-                </div>
-                <div className="flex justify-between">
-                    <h6>USDC</h6>
-                    <p>{UsdcBalance ? UsdcBalance.toFixed(2) : "0.00"}</p>
-                </div>
-            </div>
-        )
-    }
-
-    const compueOutputAmount = async () => {
-        // CHekcs some params
-        if (!smartWalletPubkey || isConnected == false || !inputAmount || parseFloat(inputAmount) <= 0) {
-            setError("Multiple Variables Unset")
+    const computeOutputAmount = async () => {
+        if (!inputAmount || parseFloat(inputAmount) <= 0) {
             setOutputAmount('')
+            setQuote(null)
             return
         }
 
         setError('')
+        setQuoting(true)
         try {
-            const inputMint = TOKENS[swapToken].mint;
-            const outputMint = TOKENS[outputToken].mint;
             const swapAmount = parseFloat(inputAmount) * Math.pow(10, TOKENS[swapToken].decimals);
-
-            const quoteResponse = await axios.get(
+            const { data: quoteResponse } = await axios.get(
                 `${DEV_API_URLS.SWAP_HOST}/compute/swap-base-in?` +
-                `inputMint=${inputMint}&` +
-                `outputMint=${outputMint}&` +
+                `inputMint=${TOKENS[swapToken].mint}&` +
+                `outputMint=${TOKENS[outputToken].mint}&` +
                 `amount=${Math.floor(swapAmount)}&` +
                 `slippageBps=50&` +
                 `txVersion=LEGACY`
             );
 
-            console.log(quoteResponse.data)
-
-            if (!quoteResponse.data) {
-                setQuoteSuccess(false)
-                setError("Failed to Get Quote")
-                setQuote(null);
-                setSwapStatus("error")
+            // Raydium wraps the quote as { success, data: { outputAmount, ... } }
+            if (!quoteResponse?.success) {
+                setQuote(null)
+                setOutputAmount('')
+                setError(quoteResponse?.msg || "Raydium couldn't quote this swap. Try the other direction.")
                 return;
             }
 
             const rawOutputAmount = parseFloat(quoteResponse.data.outputAmount)
-            const formattedOutput = (rawOutputAmount / Math.pow(10, TOKENS[outputToken].decimals)).toFixed(6);
-
-            setOutputAmount(formattedOutput);
+            setOutputAmount((rawOutputAmount / Math.pow(10, TOKENS[outputToken].decimals)).toFixed(6));
+            setQuote(quoteResponse);
         } catch (error) {
             console.error(error)
+            setQuote(null)
             setError(`${error}`)
+        } finally {
+            setQuoting(false)
         }
     }
 
+    // Re-quote shortly after the user stops typing
+    useEffect(() => {
+        setQuote(null);
+        const t = setTimeout(computeOutputAmount, 600);
+        return () => clearTimeout(t);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [inputAmount, swapToken]);
 
     const executeSwap = async () => {
-        if (!quote || !quoteSuccess) {
-            setError("Error Fetching Quotes");
+        if (!quote || !smartWalletPubkey) {
+            setError("Get a quote first");
             return;
         }
-
-        if (!inputAmount) {
-            setError("Amount Not Set");
-            return
-        }
+        const walletKey = smartWalletPubkey;
 
         setSwapping(true);
         setError("");
         setSwapStatus("idle")
 
-
         try {
-            const inputMint = TOKENS[swapToken as keyof typeof TOKENS].mint;
-            const outputMint = TOKENS[outputToken as keyof typeof TOKENS].mint;
-            // const swapAmount = parseFloat(inputAmount) * Math.pow(10, TOKENS[swapToken as keyof typeof TOKENS].decimals);
+            const isInputSol = swapToken === "SOL";
+            const isOutputSol = outputToken === "SOL";
+            const owner = new Web3PublicKey(walletKey.toString());
+            // The smart wallet is a PDA, so its token accounts are derived with allowOwnerOffCurve
+            const ata = (mint: string) =>
+                getAssociatedTokenAddressSync(new Web3PublicKey(mint), owner, true).toBase58();
 
-            // fetch the swap from raydium
-            const { data: swapResponse } = await axios.get(`${DEV_API_URLS.SWAP_HOST}/compute/swap-base-in?...&txVersion=LEGACY`)
             const { data: swapData } = await axios.post(`${DEV_API_URLS.SWAP_HOST}/transaction/swap-base-in`, {
-                swapResponse,
-                TxVersion: "LEGACY",
-                wallet: smartWalletPubkey?.toString(),
-                wrapSol: inputMint === TOKENS.SOL.mint,
-                unwrapSol: outputMint === TOKENS.SOL.mint,
+                computeUnitPriceMicroLamports: "0",
+                swapResponse: quote,
+                txVersion: "LEGACY",
+                wallet: walletKey.toString(),
+                wrapSol: isInputSol,
+                unwrapSol: isOutputSol,
+                inputAccount: isInputSol ? undefined : ata(TOKENS[swapToken].mint),
+                outputAccount: isOutputSol ? undefined : ata(TOKENS[outputToken].mint),
             })
 
-            const transactionBuffer = Buffer.from(swapData.data[0].transaction, 'base64');
-            const legacyTx = Transaction.from(transactionBuffer);
+            if (!swapData?.success) throw new Error(swapData?.msg || "Raydium couldn't build the swap transaction");
 
-            // got this fix from Codex on X
-            const COMPUTE_BUDGET_PROGRAM = new PublicKey('ComputeBudget111111111111111111111111111111');
+            const legacyTx = Transaction.from(Buffer.from(swapData.data[0].transaction, 'base64'));
+
+            // Lazorkit manages the compute budget itself, so drop Raydium's ComputeBudget instructions
             const instructions = legacyTx.instructions.filter(
                 ix => !ix.programId.equals(COMPUTE_BUDGET_PROGRAM)
             );
 
             instructions.forEach((ix) => {
-                const hasSmartWallet = ix.keys.some(k => k.pubkey.toBase58() === smartWalletPubkey?.toString());
+                const hasSmartWallet = ix.keys.some(k => k.pubkey.toBase58() === walletKey.toString());
                 if (!hasSmartWallet) {
-                    ix.keys.push({ pubkey: smartWalletPubkey as PublicKey, isSigner: false, isWritable: false });
+                    ix.keys.push({ pubkey: walletKey, isSigner: false, isWritable: false });
                 }
             });
 
@@ -168,159 +188,115 @@ export default function Raydium() {
                 transactionOptions: { computeUnitLimit: 600_000 }
             });
 
-            console.log(signature)
+            setExplorerUrl(`https://solscan.io/tx/${signature}?cluster=devnet`);
+            setSwapStatus("success");
+            setInputAmount('');
         } catch (error: any) {
             console.error(error)
-            alert(`Swap Unsuccessful : ${error}`)
+            setError(error?.message ?? `${error}`)
+            setSwapStatus("error")
+        } finally {
+            setSwapping(false)
         }
     }
 
     return (
-        <div className="min-h-screen bg-white text-black relative">
-            <WalletHeader />
-            <div className="max-w-5xl mx-auto px-4 py-8">
-                <a
-                    href="/dashboard"
-                    className="text-sm text-purple-700 underline"
-                >
-                    ← Back to dashboard
-                </a>
-                <div className="mt-7 mb-2.5">
-                    <h3 className="text-2xl">Gasless Swaps powered by <span className="text-purple-600">Lazorkit</span> X <span className="text-blue-600">Raydium</span></h3>
-                    <Divider />
-                    <div className="flex flex-col md:flex-row md:space-x-8 space-y-4 md:space-y-0">
-                        {/* LEFT: NOTE SECTION */}
-                        <div className="md:w-1/2 border border-gray-300  px-4 py-2.5 flex flex-col space-y-4 rounded-sm">
-                            <h4 className="mb-2">NOTE</h4>
-                            <p>
-                                Swapping on Raydium(Devnet) is limited and its integration posed a great challange for me 🥲
-                            </p>
-                            <p>
-                                For this demo SOL --- USDC is supported, if it doesnt work try USDC --- SOL
-                            </p>
-                            <p className="">Swapping on Raydium has never been eaier with lazorkit but due to some of the ongoing API erros, well have to make some changes</p>
-                            <p>Choose the token to be swapped</p>
-                            <p>If SOL - USDC doesnt work try USDC - SOL , raydium devnet is very tricky</p>
+        <AppShell>
+            <PageHeader
+                back={{ href: "/examples", label: "Examples" }}
+                eyebrow="Example · Raydium"
+                title="Swap on Raydium with a passkey"
+                description="Quotes come from Raydium's Trade API. Your Lazorkit smart wallet signs the swap, with no extension involved."
+            />
 
-                        </div>
+            <div className="grid gap-6 lg:grid-cols-5">
+                <div className="lg:col-span-3">
+                    {isConnected && smartWalletPubkey ? (
+                        <Card className="mx-auto max-w-lg">
+                            <SwapBalances pubkey={smartWalletPubkey} />
 
-
-                        <form
-                            className="md:w-1/2 py-3 px-4 border border-gray-300 w-full mx-auto space-y-6 rounded-sm"
-                            onSubmit={e => {
-                                e.preventDefault();
-                                // Add actual swap logic here if desired
-                            }}
-                        >
-
-                            <div className="mb-6">
-                                <SwapBalances pubkey={smartWalletPubkey as PublicKey} />
-                                <label
-                                    className="block text-sm text-gray-700 mb-2"
-                                    htmlFor="swap-amount"
-                                >
-                                    Amount in {swapToken}
-                                </label>
+                            <TokenBox label="You pay" token={swapToken}>
                                 <input
-                                    id="swap-amount"
                                     type="number"
                                     step="0.0001"
                                     min="0"
-                                    className="w-full px-3 py-2 border border-gray-300 text-sm focus:outline-none focus:border-black"
                                     placeholder="0.00"
+                                    aria-label={`Amount in ${swapToken}`}
                                     value={inputAmount}
                                     onChange={e => {
                                         setInputAmount(e.target.value);
                                         setError("");
+                                        setSwapStatus("idle");
                                     }}
-                                    onBlur={compueOutputAmount}
+                                    className="w-full bg-transparent font-mono text-2xl text-zinc-100 outline-none placeholder:text-zinc-700"
                                 />
+                            </TokenBox>
+
+                            <div className="relative z-10 -my-3 flex justify-center">
+                                <button
+                                    onClick={flip}
+                                    title="Switch direction"
+                                    className="grid h-9 w-9 cursor-pointer place-items-center rounded-lg border border-white/10 bg-[#13111C] text-zinc-400 transition hover:rotate-180 hover:text-white"
+                                >
+                                    <ArrowDownUp className="h-4 w-4" />
+                                </button>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-2 mb-6">
-                                <button
-                                    className={`px-8 py-4 rounded-sm cursor-pointer focus:outline-none ${swapToken === "SOL" ? "bg-black text-white" : "bg-white border border-gray-300 text-black"}`}
-                                    type="button"
-                                    onClick={setSOL}
-                                >
-                                    SOL
-                                </button>
-                                <button
-                                    className={`px-8 py-4 rounded-sm cursor-pointer ${swapToken === "USDC" ? "bg-black text-white" : "bg-white border border-gray-300 text-black"} focus:outline-none`}
-                                    type="button"
-                                    onClick={setUSDC}
-                                >
-                                    USDC
-                                </button>
-                            </div>
-                            <h6 className="text-center">Swap {swapToken} for {outputToken}</h6>
-                            {
-                                outputAmount && (
-                                    <div className="text-center mb-2">
-                                        <p className="text-sm">
-                                            You will get: <span className="font-mono">{outputAmount} {outputToken}</span>
-                                        </p>
-                                    </div>
-                                )
-                            }
-                            {
-                                error && <div className="text-red-500 text-sm text-center">{error}</div>
-                            }
-                            <button
-                                className="w-full py-2 bg-black text-white text-sm font-medium hover:bg-gray-800 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed cursor-pointer"
-                                type="submit"
+                            <TokenBox label="You receive (estimate)" token={outputToken}>
+                                <p className="truncate font-mono text-2xl text-zinc-300">
+                                    {quoting ? <span className="text-base text-zinc-500">Getting quote…</span> : outputAmount || <span className="text-zinc-700">0.00</span>}
+                                </p>
+                            </TokenBox>
+
+                            <p className="mt-3 text-xs text-zinc-500">Slippage 0.5% · Devnet pools only</p>
+
+                            <Button
+                                className="mt-4 w-full py-3"
                                 onClick={executeSwap}
-                                disabled={!inputAmount || swapping || !isConnected}
+                                loading={swapping}
+                                disabled={!inputAmount || !quote || quoting}
                             >
-                                {swapping ? "Swapping..." : "Swap"}
-                            </button>
-                        </form>
-                    </div>
-                    <div className="mt-6 px-4 py-3 border border-gray-300 rounded-sm space-y-1.5">
-                        <h1>This example Shows how swaps on Raydium (Devnet) can be done with Lazorkit Smart Wallets</h1>
-                        <p>In the box to the right , select your preffered token , set an amount and swap on Raydium</p>
-                        <p>If you encounter persistent errors, try both swap directions and double check network connectivity.</p>
-                        <Divider/>
-                        <div>
+                                {swapping ? "Swapping…" : `Swap ${swapToken} for ${outputToken}`}
+                            </Button>
 
-                            <h6 className="mb-1.5 text-blue-700">Under the Hood:</h6>
-                            <ul className="space-y-0.5">
-                                <li>The app uses Raydium's Trade API to fetch price quotes and build swap transactions.</li>
-                                <li>Transactions are filtered to remove superfluous ComputeBudget instructions, which are managed by Lazorkit internally.</li>
-                                <li>Signing and sending is handled by your Lazorkit smart wallet; simply approve in the browser window when prompted.</li>
-                            </ul>
-                        </div>
-                        {/* 
-                        --- Swapping on Raydium Devnet with Lazorkit ---
-
-                        This example demonstrates how you can perform token swaps on Raydium (Devnet) using a Lazorkit passkey-based smart wallet.
-
-                        📝 **Notes and Tips:**
-                        - You can swap between SOL and USDC using the simple UI above.
-                        - Swapping on Raydium Devnet can be unreliable and may fail for certain pairs. If your swap from SOL→USDC is not working, try swapping USDC→SOL.
-                        - All transaction gas is handled by Lazorkit, and you sign transactions securely using passkeys—no browser extensions needed!
-                        - Your wallet address can be found at the top of the page. Click to copy it at any time.
-                        - The "Amount in {swapToken}" field lets you specify how much to swap. The minimum/maximum allowed may depend on Raydium pools.
-                        - After entering an amount, the UI fetches a live quote and displays exactly how much output token you will receive.
-
-                        🛠️ **Under the Hood:**
-                        - The app uses Raydium's Trade API to fetch price quotes and build swap transactions.
-                        - Transactions are filtered to remove superfluous ComputeBudget instructions, which are managed by Lazorkit internally.
-                        - Signing and sending is handled by your Lazorkit smart wallet; simply approve in the browser window when prompted.
-
-                        🔁 If you encounter persistent errors, try both swap directions and double check network connectivity.
-
-                        For detailed developer instructions, see the reference guide below. 
-                        */}
-                        <Divider />
-                        <h2 className="text-xl">References</h2>
-                        <ul>
-                            <li><a href="" target="_blank">Raydium Trade API Docs</a></li>
-                        </ul>
-                    </div>
+                            {error && swapStatus !== "error" && (
+                                <p className="mt-3 text-sm text-red-300">{error}</p>
+                            )}
+                            <TxResult status={swapStatus} url={explorerUrl} error={error} />
+                        </Card>
+                    ) : (
+                        <EmptyState icon={<Wallet className="h-5 w-5" />} title="Connect your wallet to swap">
+                            <p>You&apos;ll need devnet SOL or USDC. Grab some from the faucets on the dashboard.</p>
+                            <Button className="mt-5" onClick={() => connect()} loading={isConnecting}>
+                                Connect wallet
+                            </Button>
+                        </EmptyState>
+                    )}
                 </div>
-                <div className=""></div>
+
+                <aside className="space-y-4 lg:col-span-2">
+                    <div className="flex gap-3 rounded-xl border border-amber-400/20 bg-amber-400/5 p-4 text-sm leading-relaxed text-amber-100">
+                        <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" />
+                        <p>
+                            Raydium&apos;s devnet pools are unreliable. If SOL → USDC fails, flip the direction and try USDC → SOL.
+                        </p>
+                    </div>
+                    <Card>
+                        <h2 className="font-medium">Under the hood</h2>
+                        <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm leading-relaxed text-zinc-400">
+                            <li>Raydium&apos;s Trade API returns a quote, then builds a legacy swap transaction for your wallet.</li>
+                            <li>Raydium&apos;s ComputeBudget instructions are removed, because Lazorkit sets the compute budget itself.</li>
+                            <li>Your smart wallet signs and sends the remaining instructions after a passkey prompt.</li>
+                        </ol>
+                        <div className="mt-5 flex flex-wrap gap-x-4 gap-y-2 border-t border-white/5 pt-4 text-sm">
+                            <Link href="/guides/swapping-on-raydium" className="text-[#A08BFF] hover:text-white">Read the guide →</Link>
+                            <a href="https://docs.raydium.io/raydium/traders/trade-api" target="_blank" rel="noreferrer" className="text-zinc-400 hover:text-white">
+                                Raydium Trade API docs
+                            </a>
+                        </div>
+                    </Card>
+                </aside>
             </div>
-        </div>
+        </AppShell>
     )
 }
