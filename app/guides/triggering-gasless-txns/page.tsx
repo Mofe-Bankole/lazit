@@ -83,7 +83,7 @@ import { useState } from "react";
 export function useGaslessTransfer() {
   const {
     signAndSendTransaction,
-    smartWalletPubkey,
+    vaultPubkey,
     isSigning,
     isConnected,
   } = useWallet();
@@ -91,7 +91,7 @@ export function useGaslessTransfer() {
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
 
   const sendSol = async (recipient: string, amount: string) => {
-    if (!smartWalletPubkey || !recipient || !amount) return;
+    if (!vaultPubkey || !recipient || !amount) return;
 
     try {
       setStatus("idle");
@@ -104,7 +104,7 @@ export function useGaslessTransfer() {
       }
 
       const instruction = SystemProgram.transfer({
-        fromPubkey: smartWalletPubkey,
+        fromPubkey: vaultPubkey,
         toPubkey: recipientPubkey,
         lamports,
       });
@@ -185,6 +185,8 @@ export default function TransferForm() {
             <li>Passing SOL instead of lamports</li>
             <li>Not checking wallet connection</li>
             <li>Forgetting <code>clusterSimulation: "devnet"</code></li>
+            <li>Sending from <code>smartWalletPubkey</code> instead of <code>vaultPubkey</code> (the vault holds the funds)</li>
+            <li>Starting a second send before the first resolves. <code>isSigning</code> stays <code>true</code> until the transaction is confirmed, and another send is refused with &quot;Already signing&quot;</li>
           </ul>
         </Callout>
 

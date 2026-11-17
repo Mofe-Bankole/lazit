@@ -46,7 +46,7 @@ function timeLeft(expiresAt: number) {
 }
 
 export default function BurnerWalletPage() {
-    const { smartWalletPubkey, isConnected, connect, isConnecting } = useWallet();
+    const { vaultPubkey, isConnected, connect, isConnecting } = useWallet();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [wallets, setWallets] = useState<BurnerWallet[]>([]);
     const [loading, setLoading] = useState(true);
@@ -59,7 +59,7 @@ export default function BurnerWalletPage() {
 
     function openSweep(publicKey: string) {
         setSender(new PublicKey(publicKey));
-        setRecipient(smartWalletPubkey?.toString() ?? "");
+        setRecipient(vaultPubkey?.toString() ?? "");
         setAmount("");
     }
 
@@ -70,10 +70,10 @@ export default function BurnerWalletPage() {
     }
 
     async function fetchUsersBurners() {
-        if (!smartWalletPubkey) { setLoading(false); return; }
+        if (!vaultPubkey) { setLoading(false); return; }
         setLoading(true);
         try {
-            const res = await axios.get(`/api/burners?owner=${smartWalletPubkey.toString()}`);
+            const res = await axios.get(`/api/burners?owner=${vaultPubkey.toString()}`);
             setWallets(res.data.success ? res.data.wallets || [] : []);
         } catch (error) {
             console.error("Error fetching wallets:", error);
@@ -86,7 +86,7 @@ export default function BurnerWalletPage() {
     useEffect(() => {
         fetchUsersBurners();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [smartWalletPubkey]);
+    }, [vaultPubkey]);
 
     async function handleDeleteWallet(publicKey: string) {
         if (!confirm("Delete this burner wallet? Any funds left in it will be lost.")) return;
@@ -113,7 +113,7 @@ export default function BurnerWalletPage() {
         <AppShell>
             <BurnerModal
                 isOpen={isModalOpen}
-                owner={smartWalletPubkey?.toString() as string}
+                owner={vaultPubkey?.toString() as string}
                 onClose={() => setIsModalOpen(false)}
                 onSubmit={() => fetchUsersBurners()}
             />

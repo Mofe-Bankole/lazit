@@ -6,9 +6,9 @@ import { copyToClipboard } from "../lib/clipboard";
 
 // Shows the short wallet address; clicking copies the full address
 export default function AddressButton() {
-  const { smartWalletPubkey } = useWallet();
+  const { vaultPubkey } = useWallet();
   const [copied, setCopied] = useState(false);
-  const full = smartWalletPubkey?.toString();
+  const full = vaultPubkey?.toString();
   if (!full) return null;
 
   function copy() {

@@ -69,7 +69,7 @@ export default function CreatingPasskeyEnabledWallets() {
         {/* STEP 2 */}
         <Section title="Step 2 — Install Lazorkit & Solana Dependencies">
           <CodeBlock>{`cd passkey_build
-npm install @lazorkit/wallet @solana/web3.js @coral-xyz/anchor @solana/spl-token`}</CodeBlock>
+npm install @lazorkit/wallet@^3.4.1 @solana/web3.js@^1.99.0 @solana/spl-token`}</CodeBlock>
 
           <Callout type="info">
             Lazorkit handles wallet creation and signing. Solana libraries handle
@@ -108,6 +108,7 @@ export default function RootLayout({
           rpcUrl={CONFIG.RPC_URL}
           portalUrl={CONFIG.PORTAL_URL}
           paymasterConfig={CONFIG.PAYMASTER}
+          cluster="devnet"
         >
           {children}
         </LazorkitProvider>
@@ -168,20 +169,25 @@ export default function WalletConnect() {
         {/* STEP 5 */}
         <Section title="Step 5 — Access the Wallet Address">
           <p className="text-zinc-400 mb-3">
-            You can access the wallet’s public key via
+            The address to show, fund and send from is
             <code className="rounded bg-white/10 text-zinc-200 px-1 mx-1 font-mono">
-              smartWalletPubkey
-            </code>.
+              vaultPubkey
+            </code>. That&apos;s the vault, where the funds live.
           </p>
+          <Callout type="warn">
+            Don&apos;t use <code>smartWalletPubkey</code> as the user&apos;s address. Since{" "}
+            <code>@lazorkit/wallet</code> 3.0 it is the internal wallet PDA, and nothing can spend
+            from it. Funds sent there are stuck.
+          </Callout>
 
           <CodeBlock>{`import { useWallet } from "@lazorkit/wallet";
 
 export default function AddressButton() {
-  const { smartWalletPubkey } = useWallet();
+  const { vaultPubkey } = useWallet();
 
   const copy = () => {
     navigator.clipboard.writeText(
-      smartWalletPubkey?.toString() || ""
+      vaultPubkey?.toString() || ""
     );
     alert("Address copied");
   };
@@ -191,7 +197,7 @@ export default function AddressButton() {
       onClick={copy}
       className="font-mono text-sm cursor-pointer border px-3 py-2"
     >
-      {smartWalletPubkey?.toString()}
+      {vaultPubkey?.toString()}
     </span>
   );
 }`}</CodeBlock>

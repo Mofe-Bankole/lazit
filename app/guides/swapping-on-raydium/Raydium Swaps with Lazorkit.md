@@ -81,7 +81,7 @@ import useBalance from "@/hooks/useBalances";
 ###### 4. Declare state for swapping , the two pairs in this guide are SOL and USDC
 
 ```ts
- const { smartWalletPubkey, isConnected , signAndSendTransaction
+ const { vaultPubkey, isConnected , authorizeAndExecute
     } = useWallet()
     const [swapping, setSwapping] = useState(false);
     const [swapToken, setSwapToken] = useState<"SOL" | "USDC">("SOL");
@@ -140,16 +140,16 @@ import useBalance from "@/hooks/useBalances";
 
 ###### 6.Execute the Swap
 
-Raydium returns the quote as `{ success, data }`, so keep the whole response and pass it back as `swapResponse`. The smart wallet is a PDA, so derive its token accounts with `allowOwnerOffCurve` set to `true`.
+Raydium returns the quote as `{ success, data }`, so keep the whole response and pass it back as `swapResponse`. Build the swap for `vaultPubkey` (the vault holds the tokens). The vault is a PDA, so derive its token accounts with `allowOwnerOffCurve` set to `true`. A Raydium swap is far bigger than the ~345 bytes one passkey transaction allows, so send it with `authorizeAndExecute`: one passkey prompt, then the SDK sends an Authorize and an Execute transaction.
 
 
 ```ts
     const executeSwap = async () => {
-        if (!quote || !smartWalletPubkey) {
+        if (!quote || !vaultPubkey) {
             setError("Get a quote first");
             return;
         }
-        const walletKey = smartWalletPubkey;
+        const walletKey = vaultPubkey;
 
         setSwapping(true);
         setError("");
@@ -158,7 +158,7 @@ Raydium returns the quote as `{ success, data }`, so keep the whole response and
         try {
             const isInputSol = swapToken === "SOL";
             const isOutputSol = outputToken === "SOL";
-            const owner = new Web3PublicKey(walletKey.toString());
+            const owner = new Web3PublicKey(walletKey.toString()); // the vault holds the tokens
             // The smart wallet is a PDA, so its token accounts are derived with allowOwnerOffCurve
             const ata = (mint: string) =>
                 getAssociatedTokenAddressSync(new Web3PublicKey(mint), owner, true).toBase58();
@@ -183,17 +183,9 @@ Raydium returns the quote as `{ success, data }`, so keep the whole response and
                 ix => !ix.programId.equals(COMPUTE_BUDGET_PROGRAM)
             );
 
-            instructions.forEach((ix) => {
-                const hasSmartWallet = ix.keys.some(k => k.pubkey.toBase58() === walletKey.toString());
-                if (!hasSmartWallet) {
-                    ix.keys.push({ pubkey: walletKey, isSigner: false, isWritable: false });
-                }
-            });
-
-            const signature = await signAndSendTransaction({
-                instructions,
-                transactionOptions: { computeUnitLimit: 600_000 }
-            });
+            // A Raydium swap is far larger than one passkey transaction allows (~345 bytes),
+            // so use the deferred flow: one passkey prompt, two transactions (Authorize, then Execute)
+            const signature = await authorizeAndExecute({ instructions });
 
             setExplorerUrl(`https://solscan.io/tx/${signature}?cluster=devnet`);
             setSwapStatus("success");
@@ -217,7 +209,7 @@ Raydium returns the quote as `{ success, data }`, so keep the whole response and
                             }}
                         >
                             <div className="mb-6">
-                                <SwapBalances pubkey={smartWalletPubkey as PublicKey} />
+                                <SwapBalances pubkey={vaultPubkey as PublicKey} />
                                 <label
                                     className="block text-sm text-gray-700 mb-2"
                                     htmlFor="swap-amount"

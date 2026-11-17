@@ -106,9 +106,9 @@ export function App() {
 }
 
 function Connect() {
-  const { connect, smartWalletPubkey } = useWallet();
-  return smartWalletPubkey
-    ? <p>{smartWalletPubkey.toBase58()}</p>
+  const { connect, vaultPubkey } = useWallet();
+  return vaultPubkey
+    ? <p>{vaultPubkey.toBase58()}</p>
     : <button onClick={connect}>Sign in with passkey</button>;
 }`;
 

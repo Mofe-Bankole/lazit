@@ -68,7 +68,7 @@ function TokenBox({ label, token, children }: { label: string; token: Token; chi
 }
 
 export default function Raydium() {
-    const { smartWalletPubkey, isConnected, signAndSendTransaction, connect, isConnecting } = useWallet()
+    const { vaultPubkey, isConnected, authorizeAndExecute, connect, isConnecting } = useWallet()
     const [swapping, setSwapping] = useState(false);
     const [quoting, setQuoting] = useState(false);
     const [swapToken, setSwapToken] = useState<Token>("SOL");
@@ -138,11 +138,11 @@ export default function Raydium() {
     }, [inputAmount, swapToken]);
 
     const executeSwap = async () => {
-        if (!quote || !smartWalletPubkey) {
+        if (!quote || !vaultPubkey) {
             setError("Get a quote first");
             return;
         }
-        const walletKey = smartWalletPubkey;
+        const walletKey = vaultPubkey;
 
         setSwapping(true);
         setError("");
@@ -151,7 +151,7 @@ export default function Raydium() {
         try {
             const isInputSol = swapToken === "SOL";
             const isOutputSol = outputToken === "SOL";
-            const owner = new Web3PublicKey(walletKey.toString());
+            const owner = new Web3PublicKey(walletKey.toString()); // the vault holds the tokens
             // The smart wallet is a PDA, so its token accounts are derived with allowOwnerOffCurve
             const ata = (mint: string) =>
                 getAssociatedTokenAddressSync(new Web3PublicKey(mint), owner, true).toBase58();
@@ -176,17 +176,9 @@ export default function Raydium() {
                 ix => !ix.programId.equals(COMPUTE_BUDGET_PROGRAM)
             );
 
-            instructions.forEach((ix) => {
-                const hasSmartWallet = ix.keys.some(k => k.pubkey.toBase58() === walletKey.toString());
-                if (!hasSmartWallet) {
-                    ix.keys.push({ pubkey: walletKey, isSigner: false, isWritable: false });
-                }
-            });
-
-            const signature = await signAndSendTransaction({
-                instructions,
-                transactionOptions: { computeUnitLimit: 600_000 }
-            });
+            // A Raydium swap is far larger than one passkey transaction allows (~345 bytes),
+            // so use the deferred flow: one passkey prompt, two transactions (Authorize, then Execute)
+            const signature = await authorizeAndExecute({ instructions });
 
             setExplorerUrl(`https://solscan.io/tx/${signature}?cluster=devnet`);
             setSwapStatus("success");
@@ -211,9 +203,9 @@ export default function Raydium() {
 
             <div className="grid gap-6 lg:grid-cols-5">
                 <div className="lg:col-span-3">
-                    {isConnected && smartWalletPubkey ? (
+                    {isConnected && vaultPubkey ? (
                         <Card className="mx-auto max-w-lg">
-                            <SwapBalances pubkey={smartWalletPubkey} />
+                            <SwapBalances pubkey={vaultPubkey} />
 
                             <TokenBox label="You pay" token={swapToken}>
                                 <input
@@ -286,7 +278,7 @@ export default function Raydium() {
                         <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm leading-relaxed text-zinc-400">
                             <li>Raydium&apos;s Trade API returns a quote, then builds a legacy swap transaction for your wallet.</li>
                             <li>Raydium&apos;s ComputeBudget instructions are removed, because Lazorkit sets the compute budget itself.</li>
-                            <li>Your smart wallet signs and sends the remaining instructions after a passkey prompt.</li>
+                            <li>The swap is too big for one passkey transaction, so <code className="font-mono text-zinc-200">authorizeAndExecute</code> sends it in two: one passkey prompt authorizes it, then it executes.</li>
                         </ol>
                         <div className="mt-5 flex flex-wrap gap-x-4 gap-y-2 border-t border-white/5 pt-4 text-sm">
                             <Link href="/guides/swapping-on-raydium" className="text-[#A08BFF] hover:text-white">Read the guide →</Link>

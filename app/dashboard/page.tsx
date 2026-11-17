@@ -8,9 +8,9 @@ import { AppShell, Button, Card, Field, LinkCard, PageHeader, TxResult } from ".
 
 export default function Dashboard() {
   // As at time of writing, lazit is only on devnet
-  const { isSigning, smartWalletPubkey, isConnected, connect, isConnecting } = useWallet();
-  const sender = smartWalletPubkey?.toString() as string;
-  const { fetchBalances, SolBalance, UsdcBalance, loading } = useBalance(isConnected ? smartWalletPubkey : null);
+  const { isSigning, vaultPubkey, isConnected, connect, isConnecting } = useWallet();
+  const sender = vaultPubkey?.toString() as string;
+  const { fetchBalances, SolBalance, UsdcBalance, loading } = useBalance(isConnected ? vaultPubkey : null);
   const [recipient, setRecipient] = React.useState<string>("");
   const [amount, setAmount] = React.useState<string>("");
   const { handleTransactions, status, explorerUrl, error: txError } = useTransfer({ recipient, amount, sender });

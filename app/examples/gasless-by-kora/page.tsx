@@ -45,10 +45,10 @@ const FLOW = [
 ];
 
 export default function GaslessTransfers() {
-  const { smartWalletPubkey, isConnected, isSigning, connect, isConnecting } = useWallet();
+  const { vaultPubkey, isConnected, isSigning, connect, isConnecting } = useWallet();
   const [recipient, setRecipient] = React.useState<string>("");
   const [amount, setAmount] = React.useState<string>("");
-  const sender = smartWalletPubkey ? smartWalletPubkey.toString() : "";
+  const sender = vaultPubkey ? vaultPubkey.toString() : "";
   const { explorerUrl, status, error, handleTransactions } = useTransfer({ recipient, amount, sender });
 
   return (
@@ -96,7 +96,7 @@ export default function GaslessTransfers() {
 
         {/* Form */}
         <div className="lg:col-span-3">
-          {isConnected && smartWalletPubkey ? (
+          {isConnected && vaultPubkey ? (
             <Card>
               <div className="mb-5 flex items-center justify-between">
                 <h2 className="flex items-center gap-2 font-medium">
@@ -104,7 +104,7 @@ export default function GaslessTransfers() {
                 </h2>
                 <span className="rounded-full bg-emerald-400/10 px-2 py-0.5 text-xs text-emerald-300">Fee: sponsored</span>
               </div>
-              <SenderBalances pubkey={smartWalletPubkey as PublicKey} />
+              <SenderBalances pubkey={vaultPubkey as PublicKey} />
               <div className="space-y-4">
                 <Field
                   label="Recipient"
